@@ -144,27 +144,37 @@ function B1Curve() {
 }
 
 function B2Curve() {
-    const points = [];
-
+    const anchorPoints = [];
     const total = 6;
-        for(let i = 0; i < total; i++) {
-        const curve = new THREE.CatmullRomCurve3( [
-            new THREE.Vector2(Math.sin(Math.PI * 2 * i / total), Math.cos(Math.PI * 2 * i / total)),
-            new THREE.Vector2(Math.sin(Math.PI * 2 * i / total), Math.cos(Math.PI * 2 * i / total)),
-            new THREE.Vector2(Math.sin(Math.PI * 2 * (i + .5) / total) * 0.55, Math.cos(Math.PI * 2 * (i + .5) / total) * 0.55),
-            new THREE.Vector2(Math.sin(Math.PI * 2 * (i + 1) / total), Math.cos(Math.PI * 2 * (i + 1) / total)),
-        ], false, 'centripetal', 0.8 );
-        points.push(...curve.getPoints(15));
+
+    for (let i = 0; i < total; i++) {
+        const outer = new THREE.Vector3(
+            Math.sin(Math.PI * 2 * i / total),
+            Math.cos(Math.PI * 2 * i / total),
+            0
+        );
+
+        const inner = new THREE.Vector3(
+            Math.sin(Math.PI * 2 * (i + 0.5) / total) * 0.55,
+            Math.cos(Math.PI * 2 * (i + 0.5) / total) * 0.55,
+            0
+        );
+
+        anchorPoints.push(outer, inner);
     }
 
-    return points;
+    const curve = new THREE.CatmullRomCurve3(anchorPoints, true);
+    const points = curve.getPoints(50); 
+
+    return points.map(p => new THREE.Vector2(p.x, p.y));
 }
 
 function B3Curve() {
     const points = [];
 
-    const side = 0.3;
-    const distance = 0.25;
+    const ratio = 1.5;
+    const side = 0.3 * ratio;
+    const distance = 0.25 * ratio;
 
     points.push(new THREE.Vector2(- side / 2, distance));
     points.push(new THREE.Vector2(side / 2, distance));
@@ -222,10 +232,10 @@ function B4Curve() {
     points.push(new THREE.Vector2(0, 0));
 
     const transformedPoints = points.map(p => 
-        new THREE.Vector2(p.x - 0.7 / 2, p.y - 1.5 / 2)
+        new THREE.Vector2(p.x - 0.7 / 2, p.y - 0.5)
     );
     
-    return transformedPoints;
+    return transformedPoints.reverse();
 }
 
 const curves = {

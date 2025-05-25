@@ -1,83 +1,33 @@
 import * as THREE from 'three';
 import curves from './curves';
 
+// const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.B3Curve());
 
-function createA1Shape() {
-  const points = curves.A1Curve();
+// const wireframe = new THREE.WireframeGeometry(geometry);
+// const wline = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
 
-  const geometry = new THREE.LatheGeometry(points);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-  const lathe = new THREE.Mesh(geometry, material);
+export const rotateShapeMap = {
+    A1: () => curves.A1Curve,
+    A2: () => curves.A2Curve,
+    A3: () => curves.A3Curve,
+    A4: () => curves.A4Curve,
+};
 
-  return lathe;
+export const rotateShapeScaleFactorMap = {
+    A1: 1.06,
+    A2: 1.5,
+    A3: 1.4,
+    A4: 1.7,
+};
+
+
+export const extrudeShapeMap = {
+    B1: () => curves.B1Curve,
+    B2: () => curves.B2Curve,
+    B3: () => curves.B3Curve,
+    B4: () => curves.B4Curve,
+};
+
+export function rotateShape(points, segments = 12) {
+    return new THREE.LatheGeometry(points, segments);
 }
-
-function createA2Shape() {
-  const points = curves.A2Curve();
-
-  const geometry = new THREE.LatheGeometry(points);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-  const lathe = new THREE.Mesh(geometry, material);
-
-  return lathe;
-}
-
-function createA3Shape() {
-  const points = curves.A3Curve();
-
-  const geometry = new THREE.LatheGeometry(points);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00});
-  const lathe = new THREE.Mesh(geometry, material);
-
-  return lathe;
-}
-
-function createA4Shape() {
-  const points = curves.A4Curve();
-
-  const geometry = new THREE.LatheGeometry(points);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00});
-  const lathe = new THREE.Mesh(geometry, material);
-
-  return lathe;
-}
-
-
-function createB3Shape() {
-  const shape = new THREE.Shape();
-
-  const points = curves.B3Curve();
-
-  shape.moveTo(points[0].x, points[0].y);
-  
-  for (let i = 1; i < points.length; i++) {
-    shape.lineTo(points[i].x, points[i].y);
-  }
-
-  return shape;
-}
-
-function createB4Shape() {
-  const shape = new THREE.Shape();
-
-  const points = curves.B4Curve();
-
-  shape.moveTo(points[0].x, points[0].y);
-  
-  for (let i = 1; i < points.length; i++) {
-    shape.lineTo(points[i].x, points[i].y);
-  }
-
-  return shape;
-}
-
-const shapes = {
-  createA1Shape,
-  createA2Shape,
-  createA3Shape,  
-  createA4Shape,
-  createB3Shape,
-  createB4Shape,
-}
-
-export default shapes;
