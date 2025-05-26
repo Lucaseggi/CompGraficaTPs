@@ -30,7 +30,6 @@ function A1Curve() {
         new THREE.Vector2(p.x, 1.9 - p.y)
     );
 
-    console.log(transformedPoints)
     points.push(...transformedPoints);
 
     points.push(new THREE.Vector2(0.5, 1.6));
