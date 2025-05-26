@@ -11,13 +11,15 @@ class Shelf {
         this.gui = gui;
         this.params = params;
 
-        this.height = 6;
+        this.height = 8;
         this.width = 16;
         this.depth = 2;
-
+    
         this.rows = 2;
         this.columns = 8;
-        
+    
+        this.spotMeshMap = new Map();
+
         this.structure = this.buildShelf();
         this.spots = this.calculateSpots();
     }
@@ -93,8 +95,9 @@ class Shelf {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.columns; col++) {
                 const x = startX + col * spotWidth;
-                const y = this.height * (1 - .4 * (row + 1));
-                spots.push(new THREE.Vector3(x, y, 0));
+                const y = this.height * (0.9 - .4 * (row + 2));
+                const pos = new THREE.Vector3(x, y, 0);
+                spots.push(pos);
             }
         }
 
@@ -108,21 +111,52 @@ class Shelf {
         let minDistance = Infinity;
 
         for (const spot of this.spots) {
-            const distance = forkliftPos.distanceTo(spot);
+            const worldSpot = spot.clone().applyMatrix4(this.structure.matrixWorld);            
+            const distance = forkliftPos.distanceTo(worldSpot);
             if (distance < minDistance) {
                 minDistance = distance;
                 closestSpot = spot;
             }
         }
 
-        return closestSpot;
+        return {shelfPoint: closestSpot, worldShelfPoint: closestSpot.clone().applyMatrix4(this.structure.matrixWorld)}
     }
 
-    // addMeshToFork(mesh) {
-    //     this.currentMesh = mesh;
-    //     mesh.position.set(- this.surfaceSide / 2, 0, 0);
-    //     this.forkSurface.add(mesh);
-    // }
+    addMeshToShelf(spot, mesh) {     
+        const spotKey = `${spot.x}:${spot.y}:${spot.z}`;
+        
+        if (!this.spots.some(s => s.x === spot.x && s.y === spot.y && s.z === spot.z)) {
+            throw new Error("Invalid spot: not found in shelf spots.");
+        }
+
+        if (this.spotMeshMap.has(spotKey)) {
+            console.warn("Spot is already occupied.");
+            return false;
+        }
+            
+        const newMesh = mesh;
+        newMesh.position.copy(spot);
+        this.structure.add(newMesh);
+
+        this.spotMeshMap.set(spotKey, newMesh);
+        return true;
+    }
+
+    isSpotOccupied(spot) {
+        const spotKey = `${spot.x}:${spot.y}:${spot.z}`;
+        return this.spotMeshMap.has(spotKey);
+    }
+    
+    removeMeshFromSpot(spot) {
+        const spotKey = `${spot.x}:${spot.y}:${spot.z}`;
+        const mesh = this.spotMeshMap.get(spotKey);
+        if (mesh) {
+            this.structure.remove(mesh);
+            this.spotMeshMap.delete(spotKey);
+
+            return mesh;
+        }
+    }
 
 }
 

@@ -29,13 +29,16 @@ class Printer {
         this.clipPlane = this.createClipPlane();
 
         const shapeFolder = gui.addFolder('Shapes');
+
+        shapeFolder.add(params, 'height', 0, (this.endHeight - this.baseHeight) / 2.1).name('Height');
+
         Object.entries(rotateShapeMap).forEach(([key, fn]) => {
             shapeFolder.add({
                 [key]: () => this.unbuildAndBuild(rotateShape, fn(), params, this.clipPlane, key)
             }, key);
         });
 
-        shapeFolder.add(params, 'rotation', - 2 * Math.PI, 2 * Math.PI).name('Rotation');
+        shapeFolder.add(params, 'rotation', 0, 2 * Math.PI).name('Rotation');
 
         Object.entries(extrudeShapeMap).forEach(([key, fn]) => {
             shapeFolder.add({
@@ -160,7 +163,7 @@ class Printer {
     buildShape(buildTypeFn, buildFn, params, clipPlane, key) {
         this.removeMesh();
 
-        const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight, params.rotation);
+        const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
         const material = new THREE.MeshNormalMaterial({
             color: 0xffcc00,
             clippingPlanes: [clipPlane],
@@ -172,7 +175,7 @@ class Printer {
             mesh.rotation.x = Math.PI / 2;
         }
         if (buildTypeFn === rotateShape) {
-            mesh.scale.set(rotateShapeScaleFactorMap[key], rotateShapeScaleFactorMap[key], rotateShapeScaleFactorMap[key]);
+            mesh.scale.set(rotateShapeScaleFactorMap[key], rotateShapeScaleFactorMap[key] * params.height, rotateShapeScaleFactorMap[key]);
         }
                     
         mesh.position.y = this.baseHeight;

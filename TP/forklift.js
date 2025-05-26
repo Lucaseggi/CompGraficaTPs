@@ -215,6 +215,12 @@ class Forklift {
         return worldPosition;
     }
 
+    getForkliftPosition() {
+        const worldPosition = new THREE.Vector3();
+        this.structure.getWorldPosition(worldPosition);
+        return worldPosition;
+    }
+
     addMeshToFork(mesh) {
         this.currentMesh = mesh;
         mesh.position.set(- this.surfaceSide / 2, 0, 0);
@@ -260,10 +266,10 @@ class Forklift {
                 this.structure.translateX(driveSpeed);
             }
             if (keyboardManager.isPressed('a')) {
-                this.structure.rotateY(-rotateSpeed);
+                this.structure.rotateY(rotateSpeed);
             }
             if (keyboardManager.isPressed('d')) {
-                this.structure.rotateY(rotateSpeed);
+                this.structure.rotateY(-rotateSpeed);
             }
             requestAnimationFrame(update);
         };
