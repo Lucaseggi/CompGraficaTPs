@@ -5,18 +5,15 @@ import Printer from './printer';
 import Forklift from './forklift';
 import keyboardManager from './keys';
 import Shelf from './shelf';
-import cameras, { updateCamera, updateCameraToFollowForklift } from './cameras';
+import CameraManager from './cameras';
 
 const scene = new THREE.Scene();
-let activeCamera = cameras[1];
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animate);
 renderer.localClippingEnabled = true;
 document.body.appendChild(renderer.domElement);
-
-const controls = new OrbitControls(activeCamera, renderer.domElement);
 
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
@@ -49,12 +46,14 @@ scene.add(printer.structure);
 scene.add(forklift.structure);
 scene.add(shelf.structure);
 
-forklift.structure.translateX(6);
+forklift.structure.translateX(10);
 shelf.structure.translateX(20);
 shelf.structure.rotateY(Math.PI / 2);
 
 forklift.initForkControls();
 shelf.structure.updateMatrixWorld(true);
+
+const cameraManager = new CameraManager(printer, forklift, shelf, keyboardManager, renderer);
 
 function removeClippingFromMesh(mesh) {
     if (!mesh) return;
@@ -116,10 +115,9 @@ function initGlobalControls() {
 
 initGlobalControls();
 
-
 function animate() {
-    controls.update();
-    activeCamera = updateCamera(activeCamera, keyboardManager, forklift);
+    const activeCamera = cameraManager.updateCamera();
+    cameraManager.updateControls();
 
     printer.animate();
 

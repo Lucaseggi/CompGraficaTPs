@@ -206,7 +206,11 @@ class Forklift {
         fork.position.y = this.forkHeight / 2 + 0.2;
         fork.position.x = -0.1;
 
-        return forklift;
+        const forkliftWrapper = new THREE.Group();
+        forkliftWrapper.add(forklift);
+        forklift.position.x = - this.chassisWidth / 2;
+
+        return forkliftWrapper;
     }
 
     getForkPosition() {
