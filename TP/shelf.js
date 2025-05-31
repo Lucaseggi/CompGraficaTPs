@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 
-const shelfColors = [0xded833, 0x63e0d8];
+const shelfColors = [0xe0e5e5, 0xA52A2A];
 const shelfMaterial = THREE.MeshStandardMaterial;
 
 class Shelf {
@@ -30,6 +30,8 @@ class Shelf {
         const rodGeometry = new THREE.BoxGeometry(0.2, this.height, 0.2);
         const rodMaterial = new shelfMaterial({
             color: shelfColors[0],
+            metalness: 0.8,            
+            roughness: 0.3,            
         });
         const rod = new THREE.Mesh(rodGeometry, rodMaterial);
         rod.position.z = (this.depth) / 2;

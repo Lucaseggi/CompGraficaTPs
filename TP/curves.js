@@ -12,7 +12,6 @@ function A1Curve() {
 
     const anchorPoints = [
         new THREE.Vector2(-10, -5),
-        new THREE.Vector2(-10, -5),
         new THREE.Vector2(-3, -2),
         new THREE.Vector2(-7, 0),
         new THREE.Vector2(-7, 7),
@@ -21,12 +20,14 @@ function A1Curve() {
     ]
 
     const multX = 0.06;
-    const multY = 0.08;
+    const multY = 0.075;
     const transX = 2;
-    const transY = 10;
-    const catCurve = new THREE.CatmullRomCurve3(anchorPoints.map(p => new THREE.Vector2((p.x + transX) * -multX, (p.y + transY)* multY)), false);
+    const transY = 9;
+    const catCurve = new THREE.CatmullRomCurve3(anchorPoints.map(p => new THREE.Vector3((p.x + transX) * -multX, (p.y + transY)* multY), 0), false);
     points.push(...catCurve.getPoints(30));
 
+
+    // ALTERNATIVA CON BEZIER
     // const curve1 = new THREE.CubicBezierCurve(
     //     new THREE.Vector2(0.5, 0.3),
     //     new THREE.Vector2(0.4, 0.45),
@@ -74,6 +75,7 @@ function A2Curve() {
     return points;
 }
 
+// ALTERNATIVA CON BEZIER
 // function A2Curve() {
 //     const points = [];
 

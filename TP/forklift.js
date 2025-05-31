@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 
-const forkliftColors = [0xf0c94a, 0xb30000, 0x1f2236, 0x73bfc9, 0xa724ad, 0xf58442];
+const forkliftColors = [0xf0c94a, 0xb30000, 0x1f2236, 0x73bfc9, 0xa724ad, 0xA0522D];
 const forkliftMaterial = THREE.MeshStandardMaterial;
 
 class Forklift {
@@ -112,6 +112,7 @@ class Forklift {
         const geometry = rotateShape(wheelCurve(), 20);
         const material = new forkliftMaterial({
             color: forkliftColors[2],
+            roughness: 0.3,      
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -124,6 +125,8 @@ class Forklift {
         const rodGeometry = new THREE.BoxGeometry(0.1, this.forkHeight, 0.1);
         const rodMaterial = new forkliftMaterial({
             color: forkliftColors[3],
+            metalness: 0.8,            
+            roughness: 0.3,            
         });
         const rod = new THREE.Mesh(rodGeometry, rodMaterial);
         forkGroup.add(rod);

@@ -4,10 +4,10 @@ import { extrudeShapeMap, rotateShape, rotateShapeMap, rotateShapeScaleFactorMap
 import { MeshStandardMaterial } from 'three';
 import { MeshBasicMaterial } from 'three';
 
-const printerColors = [0x808080, 0x1e8743, 0x0d015e];
+const printerColors = [0xf0f0f0, 0x1e8743, 0x0d015e];
 const printerMaterial = THREE.MeshStandardMaterial;
 
-const objectColor = [0x858585];
+const objectColor = [0x764394, 0x944343, 0x439447, 0x909443];
 const objectMaterial = THREE.MeshStandardMaterial;
 
 
@@ -19,6 +19,7 @@ class Printer {
 
         this.currentMesh = null;
         this.building = false;
+        this.unbuilding = false;
         this.objToBuild = null;
 
         this.baseHeight = 1;
@@ -32,20 +33,24 @@ class Printer {
         this.structure = this.createPrinter();
         this.clipPlane = this.createClipPlane();
 
-        const shapeFolder = gui.addFolder('Shapes');
+        const shapeFolder = gui.addFolder('Impresora');
+        shapeFolder.add(params, 'speed', 0.1, 2).name('Vel de imp');
+        shapeFolder.add(params, 'height', 0, (this.endHeight - this.baseHeight) / 2.1).name('Altura total');
 
-        shapeFolder.add(params, 'height', 0, (this.endHeight - this.baseHeight) / 2.1).name('Height');
+        const revolutionFolder = shapeFolder.addFolder('Revolución');
+        const extrusionFolder = shapeFolder.addFolder('Barrido');
+
 
         Object.entries(rotateShapeMap).forEach(([key, fn]) => {
-            shapeFolder.add({
+            revolutionFolder.add({
                 [key]: () => this.unbuildAndBuild(rotateShape, fn(), params, this.clipPlane, key)
             }, key);
         });
 
-        shapeFolder.add(params, 'rotation', 0, 2 * Math.PI).name('Rotation');
+        extrusionFolder.add(params, 'rotation', 0, 2 * Math.PI).name('Áng de tors');
 
         Object.entries(extrudeShapeMap).forEach(([key, fn]) => {
-            shapeFolder.add({
+            extrusionFolder.add({
                 [key]: () => this.unbuildAndBuild(extrudeShape, fn(), params, this.clipPlane)
             }, key);
         });
@@ -72,7 +77,7 @@ class Printer {
         barrita.rotation.z = Math.PI / 2;
         barrita.position.x = 0.9;
         barrita.position.y = 0.2;
-        
+
         const barrita2 = barrita.clone();
         barrita2.position.y += 0.4;
         lidGroup.add(barrita2)
@@ -111,10 +116,11 @@ class Printer {
         const geometry = rotateShape(baseCurve(), 8);
         const material = new printerMaterial({
             color: printerColors[0],
+            roughness: 0.3,      
         });
         const mesh = new THREE.Mesh(geometry, material);
 
-        return mesh;        
+        return mesh;
     }
 
     createRod() {
@@ -123,6 +129,7 @@ class Printer {
         const geometry = new THREE.CylinderGeometry(rodRadius, rodRadius, this.rodHeight);
         const material = new printerMaterial({
             color: printerColors[0],
+            roughness: 0.3,      
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -159,6 +166,8 @@ class Printer {
     }
 
     unbuildAndBuild(buildTypeFn, buildFn, params, clipPlane, key) {
+        this.unbuilding = true;
+        this.building = false;
         this.objToBuild = () => {
             this.buildShape(buildTypeFn, buildFn, params, clipPlane, key);
         };
@@ -169,7 +178,7 @@ class Printer {
 
         const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
         const material = new objectMaterial({
-            color: objectColor[0],
+            color: objectColor[Math.floor(Math.random() * objectColor.length)],
             clippingPlanes: [clipPlane],
             side: THREE.DoubleSide,
             metalness: 0.8
@@ -182,7 +191,7 @@ class Printer {
         if (buildTypeFn === rotateShape) {
             mesh.scale.set(rotateShapeScaleFactorMap[key], rotateShapeScaleFactorMap[key] * params.height, rotateShapeScaleFactorMap[key]);
         }
-                    
+
         mesh.position.y = this.baseHeight;
 
         this.scene.add(mesh);
@@ -211,29 +220,33 @@ class Printer {
     }
 
     animate() {
-        if (this.objToBuild) {
+        if (this.unbuilding) {
             this.lidCurrHeight = Math.max(this.baseHeight, this.lidCurrHeight - this.params.speed * 0.1);
 
             this.clipPlane.constant = this.lidCurrHeight;
             this.lid.position.y = this.lidCurrHeight;
 
             if (this.clipPlane.constant <= this.baseHeight) {
+                console.log("finished unbuilding")
                 this.objToBuild();
                 this.objToBuild = null;
-            }            
+                this.unbuilding = false;
+                this.building = true;
+            }
         }
 
-        if (!this.building) return;
+        if (this.building) {
+            this.lidCurrHeight = Math.min(this.rodHeight - 0.5, this.lidCurrHeight + this.params.speed * 0.1);
 
-        this.lidCurrHeight = Math.min(this.rodHeight - 0.5, this.lidCurrHeight + this.params.speed * 0.1);
+            this.clipPlane.constant = this.lidCurrHeight;
+            this.lid.position.y = this.lidCurrHeight;
 
-        this.clipPlane.constant = this.lidCurrHeight;
-        this.lid.position.y = this.lidCurrHeight;
-
-        if (this.clipPlane.constant >= this.endHeight) {
-            this.building = false;
-            this.gui.updateDisplay();
+            if (this.clipPlane.constant >= this.endHeight) {
+                this.building = false;
+                this.gui.updateDisplay();
+            }
         }
+
     }
 }
 

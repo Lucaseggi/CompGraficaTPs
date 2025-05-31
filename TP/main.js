@@ -24,7 +24,6 @@ scene.add(axesHelper);
 
 const gui = new GUI();
 const params = { speed: 0.6, building: false, shape: "", height: 1, rotation: 0 };
-gui.add(params, 'speed', 0.1, 2).name('Print speed');
 
 const printer = new Printer(scene, gui, params);
 const forklift = new Forklift(scene, gui, params);
@@ -39,31 +38,30 @@ const warehouse = new Warehouse();
 // const wline = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
 // scene.add(wline)
 
-const directionalLight1 = new THREE.DirectionalLight(0xffffff, 5);
-directionalLight1.position.set(0, 10, 5);
+const directionalLight1 = new THREE.DirectionalLight(0xffffff, 3);
+directionalLight1.position.set(0, 5, 5);
 // directionalLight1.castShadow = true;
 scene.add(directionalLight1);
 
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 5);
-directionalLight2.position.set(0, 10, -5);
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 3);
+directionalLight2.position.set(0, 5, -5);
 // directionalLight2.castShadow = true;
 scene.add(directionalLight2);
 
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 // const gridHelper = new THREE.GridHelper(10, 10);
 // scene.add(gridHelper);
 
-// scene.add(printer.structure);
-// scene.add(forklift.structure);
-// scene.add(shelf.structure);
-// scene.add(warehouse.structure);
+scene.add(printer.structure);
+scene.add(forklift.structure);
+scene.add(shelf.structure);
+scene.add(warehouse.structure);
 
-const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.A1Curve());
-const line = new THREE.Line(pgeometry, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
-scene.add(line)
+// const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.A1Curve());
+// const line = new THREE.Line(pgeometry, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
+// scene.add(line)
 
 printer.structure.rotateY(Math.PI)
 forklift.structure.translateX(10);
@@ -135,15 +133,6 @@ function initGlobalControls() {
 }
 
 initGlobalControls();
-
-const loader = new EXRLoader();
-
-loader.load('../bloem_field_sunrise_4k.exr', texture => {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-
-  scene.background = texture;   // Show as background (skybox)
-  scene.environment = texture; // Use for reflections/lighting
-});
 
 function animate() {
     const activeCamera = cameraManager.updateCamera();
