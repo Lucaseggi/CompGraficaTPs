@@ -9,6 +9,7 @@ import CameraManager from './cameras';
 import Warehouse from './warehouse';
 import { directPointLight } from 'three/tsl';
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
+import curves from './curves';
 
 const scene = new THREE.Scene();
 
@@ -52,14 +53,19 @@ scene.add(directionalLight2);
 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
 scene.add(ambientLight);
 
-const gridHelper = new THREE.GridHelper(10, 10);
-scene.add(gridHelper);
+// const gridHelper = new THREE.GridHelper(10, 10);
+// scene.add(gridHelper);
 
-scene.add(printer.structure);
-scene.add(forklift.structure);
-scene.add(shelf.structure);
-scene.add(warehouse.structure);
+// scene.add(printer.structure);
+// scene.add(forklift.structure);
+// scene.add(shelf.structure);
+// scene.add(warehouse.structure);
 
+const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.A1Curve());
+const line = new THREE.Line(pgeometry, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
+scene.add(line)
+
+printer.structure.rotateY(Math.PI)
 forklift.structure.translateX(10);
 forklift.structure.translateY(0.5);
 shelf.structure.translateX(20);
