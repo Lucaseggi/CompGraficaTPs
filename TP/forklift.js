@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 
-const forkliftColors = [0xff0000, 0x00ff00, 0x0000ff, 0xff0000, 0x00ff00, 0x0000ff];
-const forkliftMaterial = THREE.MeshNormalMaterial;
+const forkliftColors = [0xf0c94a, 0xb30000, 0x1f2236, 0x73bfc9, 0xa724ad, 0xf58442];
+const forkliftMaterial = THREE.MeshStandardMaterial;
 
 class Forklift {
     constructor(scene, gui, params) {
@@ -18,6 +18,7 @@ class Forklift {
         this.forkHeight = 6;
         this.surfaceSide = 2;
 
+        this.wheels = [];
         this.structure = this.buildForklift();
     }
 
@@ -26,7 +27,7 @@ class Forklift {
 
         const extrudeSettings = {
             depth: depth,
-            bevelEnabled: false
+            bevelEnabled: false,
         };
 
         const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
@@ -181,6 +182,7 @@ class Forklift {
         const frontWheelGroup = new THREE.Group();
         const wheel = this.buildWheel();
         frontWheelGroup.add(wheel);
+        this.wheels.push(wheel);
         wheel.rotation.x = Math.PI / 2;
         wheel.position.z = this.chassisWidth / 2 - 1;
 
@@ -189,11 +191,15 @@ class Forklift {
         wheel.position.z = this.chassisDepth / 2;
 
         const wheel2 = wheel.clone();
+        this.wheels.push(wheel2);
         wheel2.rotation.x = - Math.PI / 2;
         wheel2.position.z = - this.chassisDepth / 2;
         frontWheelGroup.add(wheel2);
 
         const backWheelGroup = frontWheelGroup.clone();
+        backWheelGroup.children.forEach(wheelClone => {
+            this.wheels.push(wheelClone);
+        });
         backWheelGroup.position.x = this.chassisWidth * 2 / 4;
         const wheelGroup = new THREE.Group();
         wheelGroup.add(frontWheelGroup);
@@ -265,9 +271,15 @@ class Forklift {
             }
             if (keyboardManager.isPressed('w')) {
                 this.structure.translateX(-driveSpeed);
+                this.wheels.forEach(wheel => {
+                    wheel.rotation.y += rotateSpeed;
+                });
             }
             if (keyboardManager.isPressed('s')) {
                 this.structure.translateX(driveSpeed);
+                this.wheels.forEach(wheel => {
+                    wheel.rotation.y -= rotateSpeed;
+                });
             }
             if (keyboardManager.isPressed('a')) {
                 this.structure.rotateY(rotateSpeed);

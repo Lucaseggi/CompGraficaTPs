@@ -22,8 +22,17 @@ const controls = new OrbitControls(camera, renderer.domElement);
 const grid = buildGrid(20, 50)
 scene.add(grid);
 
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
+
+// Optionally add ambient or hemisphere light for fill
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+scene.add(ambientLight);
+
 const grandfatherClock = buildGrandfatherClock();
 // scene.add(grandfatherClock)
+grandfatherClock.position.y = 3;
 
 const sun = buildSun();
 scene.add(sun)
@@ -38,7 +47,7 @@ function animate() {
     updateGrid(grid)
     updateSun(sun)
 
-    // updateGrandfatherClock(grandfatherClock);
+    updateGrandfatherClock(grandfatherClock);
 
 
     renderer.render(scene, camera);

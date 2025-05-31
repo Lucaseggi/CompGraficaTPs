@@ -4,8 +4,12 @@ import { extrudeShapeMap, rotateShape, rotateShapeMap, rotateShapeScaleFactorMap
 import { MeshStandardMaterial } from 'three';
 import { MeshBasicMaterial } from 'three';
 
-const printerColors = [0xff0000, 0x00ff00, 0x0000ff];
-const printerMaterial = THREE.MeshNormalMaterial;
+const printerColors = [0x808080, 0x1e8743, 0x0d015e];
+const printerMaterial = THREE.MeshStandardMaterial;
+
+const objectColor = [0x858585];
+const objectMaterial = THREE.MeshStandardMaterial;
+
 
 class Printer {
     constructor(scene, gui, params) {
@@ -164,10 +168,11 @@ class Printer {
         this.removeMesh();
 
         const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
-        const material = new THREE.MeshNormalMaterial({
-            color: 0xffcc00,
+        const material = new objectMaterial({
+            color: objectColor[0],
             clippingPlanes: [clipPlane],
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            metalness: 0.8
         });
         const mesh = new THREE.Mesh(geometry, material);
 

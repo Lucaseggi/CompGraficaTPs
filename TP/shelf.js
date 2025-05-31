@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 
-const shelfColors = [0xff0000, 0x00ff00];
-const shelfMaterial = THREE.MeshNormalMaterial;
+const shelfColors = [0xded833, 0x63e0d8];
+const shelfMaterial = THREE.MeshStandardMaterial;
 
 class Shelf {
     constructor(scene, gui, params) {
@@ -27,7 +27,7 @@ class Shelf {
     buildRods() {
         const rows = new THREE.Group();
         const rodRow = new THREE.Group();
-        const rodGeometry = new THREE.BoxGeometry(0.1, this.height, 0.1);
+        const rodGeometry = new THREE.BoxGeometry(0.2, this.height, 0.2);
         const rodMaterial = new shelfMaterial({
             color: shelfColors[0],
         });
@@ -55,7 +55,7 @@ class Shelf {
         const shelves = new THREE.Group();
         const changui = 0.4;
 
-        const levelGeometry = new THREE.BoxGeometry(this.width + changui, 0.1, this.depth + changui);
+        const levelGeometry = new THREE.BoxGeometry(this.width + changui, 0.2, this.depth + changui);
         const levelMaterial = new shelfMaterial({
             color: shelfColors[1],
         });
@@ -68,7 +68,7 @@ class Shelf {
         shelves.add(level2);
 
         const level3 = level.clone();
-        level3.position.y = this.height / 2 - 0.1;
+        level3.position.y = this.height / 2 - 0.2;
         shelves.add(level3);
 
         return shelves;

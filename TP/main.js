@@ -6,6 +6,9 @@ import Forklift from './forklift';
 import keyboardManager from './keys';
 import Shelf from './shelf';
 import CameraManager from './cameras';
+import Warehouse from './warehouse';
+import { directPointLight } from 'three/tsl';
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
 
 const scene = new THREE.Scene();
 
@@ -25,6 +28,7 @@ gui.add(params, 'speed', 0.1, 2).name('Print speed');
 const printer = new Printer(scene, gui, params);
 const forklift = new Forklift(scene, gui, params);
 const shelf = new Shelf(scene, gui, params);
+const warehouse = new Warehouse();
 
 // const helpers = new THREE.Group();
 // helpers.add(new THREE.PlaneHelper(printer.clipPlane, 2, 0x00ff00));
@@ -34,10 +38,19 @@ const shelf = new Shelf(scene, gui, params);
 // const wline = new THREE.LineSegments(wireframe, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
 // scene.add(wline)
 
-// const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-// directionalLight.position.set(5, 10, 5);
-// directionalLight.castShadow = true;
-// scene.add(directionalLight);
+const directionalLight1 = new THREE.DirectionalLight(0xffffff, 5);
+directionalLight1.position.set(0, 10, 5);
+// directionalLight1.castShadow = true;
+scene.add(directionalLight1);
+
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 5);
+directionalLight2.position.set(0, 10, -5);
+// directionalLight2.castShadow = true;
+scene.add(directionalLight2);
+
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
 
 const gridHelper = new THREE.GridHelper(10, 10);
 scene.add(gridHelper);
@@ -45,8 +58,10 @@ scene.add(gridHelper);
 scene.add(printer.structure);
 scene.add(forklift.structure);
 scene.add(shelf.structure);
+scene.add(warehouse.structure);
 
 forklift.structure.translateX(10);
+forklift.structure.translateY(0.5);
 shelf.structure.translateX(20);
 shelf.structure.rotateY(Math.PI / 2);
 
@@ -114,6 +129,15 @@ function initGlobalControls() {
 }
 
 initGlobalControls();
+
+const loader = new EXRLoader();
+
+loader.load('../bloem_field_sunrise_4k.exr', texture => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+
+  scene.background = texture;   // Show as background (skybox)
+  scene.environment = texture; // Use for reflections/lighting
+});
 
 function animate() {
     const activeCamera = cameraManager.updateCamera();
