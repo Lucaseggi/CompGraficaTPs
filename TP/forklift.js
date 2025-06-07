@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
+import Boombox from './boombox';
 
 const forkliftColors = [0xf0c94a, 0xb30000, 0x1f2236, 0x73bfc9, 0xa724ad, 0xA0522D];
 const forkliftMaterial = THREE.MeshStandardMaterial;
@@ -214,6 +215,14 @@ class Forklift {
         forklift.add(fork);
         fork.position.y = this.forkHeight / 2 + 0.2;
         fork.position.x = -0.1;
+
+        const boombox = new Boombox(this.scene, this.gui);
+        this.boombox = boombox;
+        boombox.structure.rotation.y = Math.PI/2;
+        const boomboxScale = 0.2;
+        boombox.structure.scale.set(boomboxScale, boomboxScale, boomboxScale);
+        boombox.structure.position.y = this.forkHeight / 3;
+        forklift.add(boombox.structure);
 
         const forkliftWrapper = new THREE.Group();
         forkliftWrapper.add(forklift);

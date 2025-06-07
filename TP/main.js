@@ -72,7 +72,7 @@ shelf.structure.rotateY(Math.PI / 2);
 forklift.initForkControls();
 shelf.structure.updateMatrixWorld(true);
 
-const cameraManager = new CameraManager(printer, forklift, shelf, keyboardManager, renderer);
+const cameraManager = new CameraManager(printer, forklift, shelf, keyboardManager, renderer, forklift.boombox.listener);
 
 function removeClippingFromMesh(mesh) {
     if (!mesh) return;
@@ -135,7 +135,7 @@ function initGlobalControls() {
 initGlobalControls();
 
 function animate() {
-    const activeCamera = cameraManager.updateCamera();
+    const activeCamera = cameraManager.updateCamera(forklift.boombox.listener);
     cameraManager.updateControls();
 
     printer.animate();

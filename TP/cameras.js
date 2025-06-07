@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
 class CameraManager {
-    constructor(printer, forklift, shelf, keyboardManager, renderer) {        
+    constructor(printer, forklift, shelf, keyboardManager, renderer, listener) {
+        this.listener = listener;
+        
         printer.structure.updateMatrixWorld(true);
         const printerWorldPosition = new THREE.Vector3();
         printer.structure.getWorldPosition(printerWorldPosition);
@@ -41,9 +43,10 @@ class CameraManager {
         this.keyboardManager = keyboardManager;
 
         this.activeCamera = this.cameras[1];
+        this.activeCamera.add(this.listener);
     }
 
-    createCamera(position, lookAt = new THREE.Vector3(0, 0, 0)) {
+    createCamera(position, lookAt = new THREE.Vector3(0, 0, 0), listener) {
         const camera = new THREE.PerspectiveCamera(
             75,
             window.innerWidth / window.innerHeight,
@@ -55,7 +58,7 @@ class CameraManager {
         return camera;
     }
 
-    updateCamera() {
+    updateCamera(listener) {
         this.updateFollowCameras();
 
         if (this.keyboardManager.isPressed('O')) {
@@ -70,6 +73,7 @@ class CameraManager {
             if (this.keyboardManager.isJustPressed(key)) {
                 this.activeCamera = this.cameras[i];
                 console.info(`Switched to camera ${i}`);
+                this.cameras[i].add(listener);
                 return this.cameras[i];
             }
         }
