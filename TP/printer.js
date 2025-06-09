@@ -7,7 +7,7 @@ import { MeshBasicMaterial } from 'three';
 const printerColors = [0xf0f0f0, 0x1e8743, 0x0d015e];
 const printerMaterial = THREE.MeshStandardMaterial;
 
-const objectColor = [0x764394, 0x944343, 0x439447, 0x909443];
+const objectColor = [0x764394, 0x944343, 0x439447, 0x909443, 0x94438d, 0x939443];
 const objectMaterial = THREE.MeshStandardMaterial;
 
 

@@ -8,6 +8,7 @@ import CameraManager from './cameras';
 import Warehouse from './warehouse';
 import { buildSun, updateSun } from '../sun';
 import Forest from '../forest';
+import FloatingCatmull from './floatingCatmull';
 
 const scene = new THREE.Scene();
 
@@ -29,6 +30,7 @@ const shelf = new Shelf(scene, gui, params);
 const warehouse = new Warehouse();
 const sun = buildSun();
 const forest = new Forest(3, 3, 2);
+const floatingCatmull = new FloatingCatmull(scene);
 
 // const helpers = new THREE.Group();
 // helpers.add(new THREE.PlaneHelper(printer.clipPlane, 2, 0x00ff00));
@@ -60,6 +62,7 @@ scene.add(shelf.structure);
 scene.add(warehouse.structure);
 scene.add(sun);
 scene.add(forest.group);
+// scene.add(floatingCatmull);
 
 // const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.A1Curve());
 // const line = new THREE.Line(pgeometry, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
@@ -75,6 +78,8 @@ sun.rotateY(-Math.PI / 1.6);
 sun.scale.set(4, 4, 4);
 forest.group.position.set(120, 0, 40);
 forest.group.scale.set(5, 5, 5);
+floatingCatmull.scaleCurve(5);
+floatingCatmull.translateCurve(new THREE.Vector3(0, warehouse.height * 1.1, 0));
 
 forklift.initForkControls();
 shelf.structure.updateMatrixWorld(true);
@@ -129,6 +134,7 @@ function initGlobalControls() {
         }
 
         if (keyboardManager.isJustPressed('r')) {
+            if (forklift.currentMesh) floatingCatmull.addFollower(forklift.currentMesh);
             forklift.removeMeshFromFork();
             console.info("Mesh dropped");
         }
@@ -152,6 +158,7 @@ function animate() {
     cameraManager.updateControls();
 
     printer.animate();
+    floatingCatmull.update(0.0005);
     updateSun(sun);
 
     renderer.render(scene, activeCamera);
