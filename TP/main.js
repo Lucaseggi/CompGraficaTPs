@@ -1,15 +1,13 @@
 import * as THREE from 'three';
 import { GUI } from 'dat.gui';
-import { Curves, OrbitControls, RectAreaLightHelper } from 'three/examples/jsm/Addons.js';
 import Printer from './printer';
 import Forklift from './forklift';
 import keyboardManager from './keys';
 import Shelf from './shelf';
 import CameraManager from './cameras';
 import Warehouse from './warehouse';
-import { directPointLight } from 'three/tsl';
-import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
-import curves from './curves';
+import { buildSun, updateSun } from '../sun';
+import Forest from '../forest';
 
 const scene = new THREE.Scene();
 
@@ -19,8 +17,8 @@ renderer.setAnimationLoop(animate);
 renderer.localClippingEnabled = true;
 document.body.appendChild(renderer.domElement);
 
-const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
+// const axesHelper = new THREE.AxesHelper(5);
+// scene.add(axesHelper);
 
 const gui = new GUI();
 const params = { speed: 0.6, building: false, shape: "", height: 1, rotation: 0 };
@@ -29,6 +27,8 @@ const printer = new Printer(scene, gui, params);
 const forklift = new Forklift(scene, gui, params);
 const shelf = new Shelf(scene, gui, params);
 const warehouse = new Warehouse();
+const sun = buildSun();
+const forest = new Forest(3, 3, 2);
 
 // const helpers = new THREE.Group();
 // helpers.add(new THREE.PlaneHelper(printer.clipPlane, 2, 0x00ff00));
@@ -58,6 +58,8 @@ scene.add(printer.structure);
 scene.add(forklift.structure);
 scene.add(shelf.structure);
 scene.add(warehouse.structure);
+scene.add(sun);
+scene.add(forest.group);
 
 // const pgeometry = new THREE.BufferGeometry().setFromPoints(curves.A1Curve());
 // const line = new THREE.Line(pgeometry, new THREE.LineBasicMaterial({ color: 0x00ff00 }));
@@ -68,6 +70,11 @@ forklift.structure.translateX(10);
 forklift.structure.translateY(0.5);
 shelf.structure.translateX(20);
 shelf.structure.rotateY(Math.PI / 2);
+sun.position.set(160, 80, 40);
+sun.rotateY(-Math.PI / 1.6);
+sun.scale.set(4, 4, 4);
+forest.group.position.set(120, 0, 40);
+forest.group.scale.set(5, 5, 5);
 
 forklift.initForkControls();
 shelf.structure.updateMatrixWorld(true);
@@ -95,7 +102,7 @@ function initGlobalControls() {
         if (keyboardManager.isJustPressed('g')) {
             const printerPoint = printer.getMeshPosition();
             const distanceToPrinter = printerPoint?.distanceTo(forklift.getForkPosition());
-            const {shelfPoint, worldShelfPoint} = shelf.getClosestShelf(forklift.getForkPosition());
+            const { shelfPoint, worldShelfPoint } = shelf.getClosestShelf(forklift.getForkPosition());
             const distanceToShelf = worldShelfPoint.distanceTo(forklift.getForkPosition());
 
             if (distanceToPrinter < 5 && printer.currentMesh) {
@@ -126,6 +133,12 @@ function initGlobalControls() {
             console.info("Mesh dropped");
         }
 
+        if (keyboardManager.isJustPressed('ArrowUp')) {
+            forest.increaseDepth();
+        } else if (keyboardManager.isJustPressed('ArrowDown')) {
+            forest.decreaseDepth();
+        }
+
         requestAnimationFrame(update);
     };
 
@@ -139,6 +152,7 @@ function animate() {
     cameraManager.updateControls();
 
     printer.animate();
+    updateSun(sun);
 
     renderer.render(scene, activeCamera);
 }

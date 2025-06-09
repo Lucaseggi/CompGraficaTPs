@@ -16,7 +16,7 @@ export function buildSun() {
 
     const width = 10;
     const height = 6;
-    const intensity = 2;
+    const intensity = 10;
     const rectLight = new THREE.RectAreaLight( 0xff10F0, intensity,  width, height );
     rectLight.position.set( 0, -3, 2 );
     rectLight.lookAt( 0, 0, 0 );
