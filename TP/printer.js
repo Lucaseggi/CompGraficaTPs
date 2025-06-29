@@ -4,6 +4,29 @@ import { extrudeShapeMap, rotateShape, rotateShapeMap, rotateShapeScaleFactorMap
 import { MeshStandardMaterial } from 'three';
 import { MeshBasicMaterial } from 'three';
 
+function loadRepeatingTexture(path, repeatX = 1, repeatY = 1) {
+    return new THREE.TextureLoader().load(path, texture => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(repeatX, repeatY);
+    });
+}
+
+const textureFolder = '/textureMaps'
+
+const materialFiles = [
+    'Marble03_1K_BaseColor',
+    'Marble09_1K_BaseColor',
+    'patron3',
+    'Pattern02_1K_VarA',
+    'Pattern02_1K_VarB',
+    'Pattern02_1K_VarC',
+    'Pattern05_1K_VarA',
+    'Pattern05_1K_VarB',
+    'Pattern05_1K_VarC',
+    'Wood06_1K_BaseColor'
+]
+
 const printerColors = [0xf0f0f0, 0x1e8743, 0x0d015e];
 const printerMaterial = THREE.MeshStandardMaterial;
 
@@ -56,6 +79,31 @@ class Printer {
         });
     }
 
+    createLight() {
+        const lightGroup = new THREE.Group();
+
+        const pointLight = new THREE.PointLight(0xffffff, 2, 20);
+        pointLight.castShadow = true; // optional, if you want shadows
+
+        lightGroup.add(pointLight);
+
+        const bulbGeometry = new THREE.SphereGeometry(0.1);
+        const bulbMaterial = new THREE.MeshStandardMaterial({
+            emissive: new THREE.Color(0xffffaa),
+            emissiveIntensity: 5,
+            color: 0x000000,
+            metalness: 0.1,
+            roughness: 0.3
+        });
+
+        const bulbMesh = new THREE.Mesh(bulbGeometry, bulbMaterial);
+        bulbMesh.position.set(0, 0, 0);
+
+        lightGroup.add(bulbMesh);
+
+        return lightGroup;
+    }
+
     createLid() {
         const lidGroup = new THREE.Group();
 
@@ -93,6 +141,19 @@ class Printer {
         barbox.position.x += this.baseWidth - 0.25;
         barbox.position.y += 0.4;
 
+        const lights = 4;
+        const radius = 1.35;
+        for (let i = 0; i < lights; i++) {
+            const lightGroup = new THREE.Group();
+            lightGroup.rotation.y = i / lights * Math.PI * 2 + Math.PI / lights;
+
+            const light = this.createLight();
+            lightGroup.add(light)
+
+            light.position.x = radius;
+            lidGroup.add(lightGroup);
+        }
+
         this.lid = lidGroup;
 
         return lidGroup;
@@ -116,7 +177,7 @@ class Printer {
         const geometry = rotateShape(baseCurve(), 8);
         const material = new printerMaterial({
             color: printerColors[0],
-            roughness: 0.3,      
+            roughness: 0.3,
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -129,7 +190,7 @@ class Printer {
         const geometry = new THREE.CylinderGeometry(rodRadius, rodRadius, this.rodHeight);
         const material = new printerMaterial({
             color: printerColors[0],
-            roughness: 0.3,      
+            roughness: 0.3,
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -177,11 +238,16 @@ class Printer {
         this.removeMesh();
 
         const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
+        // const file = materialFiles[Math.floor(Math.random() * materialFiles.length)];
+        const file = materialFiles[0];
+        const texture = loadRepeatingTexture(`${textureFolder}/${file}.png`, 0.2, 0.2);
         const material = new objectMaterial({
-            color: objectColor[Math.floor(Math.random() * objectColor.length)],
+            // color: objectColor[Math.floor(Math.random() * objectColor.length)],
             clippingPlanes: [clipPlane],
             side: THREE.DoubleSide,
-            metalness: 0.8
+            metalness: 0.8,
+            map: texture,
+            // wireframe: true
         });
         const mesh = new THREE.Mesh(geometry, material);
 

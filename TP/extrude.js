@@ -3,8 +3,10 @@ import * as THREE from 'three';
 export function extrudeShape(shapePoints, numSteps = 4, depth = 1, rotation = Math.PI / 2) {
     const geometry = new THREE.BufferGeometry();
     const vertices = [];
+    const uvs = [];
     const indices = [];
 
+    
     // Create front and back vertices
     for (let i = 0; i <= numSteps; i++) {
         const z = -i * depth / numSteps;
@@ -13,11 +15,14 @@ export function extrudeShape(shapePoints, numSteps = 4, depth = 1, rotation = Ma
         const cosA = Math.cos(angle);
         const sinA = Math.sin(angle);
 
-        shapePoints.forEach(p => {
+        shapePoints.forEach((p, pointIndex) => {
             const rotatedX = p.x * cosA - p.y * sinA;
             const rotatedY = p.x * sinA + p.y * cosA;
 
             vertices.push(rotatedX, rotatedY, z);
+            const u = pointIndex / (shapePoints.length - 1);
+            const v = numSteps - i / numSteps;
+            i == numSteps ? uvs.push(p.x, p.y) : uvs.push(u, v);
         });
     }
 
@@ -40,7 +45,7 @@ export function extrudeShape(shapePoints, numSteps = 4, depth = 1, rotation = Ma
             indices.push(a, c, d); // second triangle
         }
     }
-    
+
     const triangles = THREE.ShapeUtils.triangulateShape(shapePoints, []);
 
     // Front face (z = 0 layer)
@@ -60,6 +65,7 @@ export function extrudeShape(shapePoints, numSteps = 4, depth = 1, rotation = Ma
 
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geometry.setIndex(indices);
     geometry.computeVertexNormals();
 

@@ -168,15 +168,15 @@ function A4Curve() {
     return points;
 }
 
-function B1Curve() {
-    const points = [];
+function B1Curve(interpolationsPerSegment = 8) {
+  let points = [];
 
-    points.push(new THREE.Vector2(Math.sin(0), Math.cos(0)));
-    points.push(new THREE.Vector2(Math.sin(Math.PI * 2 / 3), Math.cos(Math.PI * 2 / 3)));
-    points.push(new THREE.Vector2(Math.sin(Math.PI * 4 / 3), Math.cos(Math.PI * 4 / 3)));
-    points.push(new THREE.Vector2(Math.sin(0), Math.cos(0)));
+  points = addInterpolatedPoints(points, new THREE.Vector2(Math.sin(0), Math.cos(0)), 0);
+  points = addInterpolatedPoints(points, new THREE.Vector2(Math.sin(Math.PI * 2 / 3), Math.cos(Math.PI * 2 / 3)), interpolationsPerSegment);
+  points = addInterpolatedPoints(points, new THREE.Vector2(Math.sin(Math.PI * 4 / 3), Math.cos(Math.PI * 4 / 3)), interpolationsPerSegment);
+  points = addInterpolatedPoints(points, new THREE.Vector2(Math.sin(0), Math.cos(0)), interpolationsPerSegment);
 
-    return points;
+  return points;
 }
 
 function B2Curve() {
@@ -205,15 +205,16 @@ function B2Curve() {
     return points.map(p => new THREE.Vector2(p.x, p.y));
 }
 
-function B3Curve() {
-    const points = [];
+function B3Curve(interpolationsPerSegment = 4) {
+    let points = [];
 
     const ratio = 1.5;
     const side = 0.3 * ratio;
     const distance = 0.25 * ratio;
 
-    points.push(new THREE.Vector2(- side / 2, distance));
-    points.push(new THREE.Vector2(side / 2, distance));
+    points = addInterpolatedPoints(points, new THREE.Vector2(- side / 2, distance), interpolationsPerSegment);
+    points = addInterpolatedPoints(points, new THREE.Vector2(side / 2, distance), interpolationsPerSegment);
+    points = addInterpolatedPoints(points, new THREE.Vector2(side / 2, side + distance), interpolationsPerSegment);
 
     const curve1 = new THREE.CubicBezierCurve(
         new THREE.Vector2(side / 2, side + distance),
@@ -223,7 +224,7 @@ function B3Curve() {
     );
     points.push(...curve1.getPoints(10));
 
-    points.push(new THREE.Vector2(distance, side / 2));
+    points = addInterpolatedPoints(points, new THREE.Vector2(distance, side / 2), interpolationsPerSegment);
 
     const rotated1 = points.map(p =>
         new THREE.Vector2(p.y, -p.x)
@@ -244,8 +245,8 @@ function B3Curve() {
     return points;
 }
 
-function B4Curve() {
-    const points = [];
+function B4Curve(interpolationsPerSegment = 6) {
+    let points = [];
 
     const curve1 = new THREE.CubicBezierCurve(
         new THREE.Vector2(0, 0),
@@ -255,7 +256,7 @@ function B4Curve() {
     );
     points.push(...curve1.getPoints(10));
 
-    points.push(new THREE.Vector2(0.7, 1));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0.7, 1), interpolationsPerSegment);
 
     const curve2 = new THREE.CubicBezierCurve(
         new THREE.Vector2(0.7, 1),
@@ -265,7 +266,7 @@ function B4Curve() {
     );
     points.push(...curve2.getPoints(10));
 
-    points.push(new THREE.Vector2(0, 0));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0, 0), interpolationsPerSegment);
 
     const transformedPoints = points.map(p =>
         new THREE.Vector2(p.x - 0.7 / 2, p.y - 0.5)
@@ -273,6 +274,29 @@ function B4Curve() {
 
     return transformedPoints.reverse();
 }
+
+function addInterpolatedPoints(points, newPoint, n = 1) {
+  if (points.length === 0) {
+    // If no points yet, just start with newPoint
+    return [newPoint.clone()];
+  }
+
+  const lastPoint = points[points.length - 1];
+  const result = [...points];
+
+  for (let i = 1; i <= n; i++) {
+    const t = i / (n + 1); // param from 0 to 1 exclusive
+    const x = lastPoint.x * (1 - t) + newPoint.x * t;
+    const y = lastPoint.y * (1 - t) + newPoint.y * t;
+    result.push(new THREE.Vector2(x, y));
+  }
+
+  // Add the new point at the end
+  result.push(newPoint.clone());
+
+  return result;
+}
+
 
 const curves = {
     A1Curve,

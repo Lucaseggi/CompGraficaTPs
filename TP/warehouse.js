@@ -2,16 +2,23 @@ import * as THREE from 'three';
 
 const WarehouseMaterial = THREE.MeshStandardMaterial;
 
+function loadRepeatingTexture(path, repeatX = 1, repeatY = 1) {
+    return new THREE.TextureLoader().load(path, texture => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(repeatX, repeatY);
+    });
+}
+
 const textureFolder = '/textureMaps'
 const materialBaseFile = '/CorrugatedMetalPanel02_1K_BaseColor.png'
 const materialNormalFile = '/CorrugatedMetalPanel02_1K_Normal.png'
 
-const materialMap = new THREE.TextureLoader().load(textureFolder + materialBaseFile, texture => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 1);
-});
-const materialNormal = new THREE.TextureLoader().load(textureFolder + materialNormalFile);
+const materialMap = loadRepeatingTexture(textureFolder + materialBaseFile, 4, 1);
+const materialNormal = loadRepeatingTexture(textureFolder + materialNormalFile, 4, 1);
+
+const ceilMaterialMap = loadRepeatingTexture(textureFolder + materialBaseFile, 4, 0.1);
+const ceilMaterialNormal = loadRepeatingTexture(textureFolder + materialNormalFile, 4, 0.1);
 
 const floorMaterialBaseFile = '/StoneTilesFloor01_1K_BaseColor.png'
 const floorMaterialNormalFile = '/StoneTilesFloor01_1K_Normal.png'
@@ -19,18 +26,8 @@ const floorMaterialNormalFile = '/StoneTilesFloor01_1K_Normal.png'
 const floorRepeatX = 9;
 const floorRepeatY = floorRepeatX / 3 * 2;
 
-
-const floorMaterialMap = new THREE.TextureLoader().load(textureFolder + floorMaterialBaseFile, texture => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(floorRepeatX, floorRepeatY);
-});
-const floorMaterialNormal = new THREE.TextureLoader().load(textureFolder + floorMaterialNormalFile, texture => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(floorRepeatX, floorRepeatY);
-});
-
+const floorMaterialMap = loadRepeatingTexture(textureFolder + floorMaterialBaseFile, floorRepeatX, floorRepeatY);
+const floorMaterialNormal = loadRepeatingTexture(textureFolder + floorMaterialNormalFile, floorRepeatX, floorRepeatY);
 
 class Warehouse {
     constructor() {
@@ -41,18 +38,58 @@ class Warehouse {
         this.structure = this.buildWarehouse();
     }
 
+    buildLamp() {
+        const lamp = new THREE.Group();
+
+        const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 5);
+        const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+        pole.position.y = 2.5;
+        lamp.add(pole);
+
+        const headGeometry = new THREE.ConeGeometry(1, 1, 32, 4, true);
+        const headMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, side: THREE.DoubleSide });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        lamp.add(head);
+
+        const bulbGeometry = new THREE.CylinderGeometry(0.2, 0.3, 0.2)
+        const bulbMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: new THREE.Color(0xffffaa),
+            emissiveIntensity: 5,
+            metalness: 0,
+            roughness: 0.2
+        });
+        const bulb = new THREE.Mesh(bulbGeometry, bulbMaterial);
+        lamp.add(bulb);
+        bulb.position.set(0, -0.3, 0)
+
+        const spotLight = new THREE.SpotLight(0xffffff, 30, this.height * 2, Math.PI / 5, 0.8, 0.8);
+        const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+        spotLight.position.set(0, 0, 0)
+        spotLight.target.position.set(0, -1, 0);
+
+        lamp.add(spotLight);
+        // lamp.add(spotLightHelper);
+        lamp.add(spotLight.target);
+
+        return lamp;
+    }
+
+
     buildWarehouse() {
         const warehouse = new THREE.Group();
 
         const cylinderGeometry = new THREE.CylinderGeometry(this.depth / 2, this.depth / 2, this.width, 4, 1, false, 0, Math.PI);
-        const cylinderMaterial = new WarehouseMaterial({ side: THREE.BackSide, map: materialMap});
+        const cylinderMaterial = new WarehouseMaterial({ side: THREE.BackSide, map: ceilMaterialMap });
         const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
         warehouse.add(cylinder);
 
         cylinder.position.y = this.height;
+        cylinder.scale.set(0.4, 1, 1);
         cylinder.rotation.z = Math.PI / 2;
 
-        const wmaterial = new WarehouseMaterial({side: THREE.BackSide, map: materialMap});
+        const wmaterial = new WarehouseMaterial({ side: THREE.BackSide, map: materialMap });
         const geometries = [
             new THREE.PlaneGeometry(this.width, this.height),
             new THREE.PlaneGeometry(this.width, this.height),
@@ -77,12 +114,27 @@ class Warehouse {
 
             warehouse.add(wallGroup)
         });
-        
+
         const fmaterial = new WarehouseMaterial({ side: THREE.BackSide, map: floorMaterialMap, normalMap: floorMaterialNormal });
         const fgeometry = new THREE.PlaneGeometry(this.width, this.depth);
         const floor = new THREE.Mesh(fgeometry, fmaterial);
         floor.rotation.x = Math.PI / 2;
         warehouse.add(floor);
+
+        const rows = 2;
+        const cols = 3;
+
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const lamp = this.buildLamp();
+                lamp.position.y = this.height + 2.1;
+
+                lamp.position.x = (col - (cols - 1) / 2) * (this.width * 1.1 / cols);
+                lamp.position.z = (row - (rows - 1) / 2) * (this.depth * .6 / rows);
+
+                warehouse.add(lamp);
+            }
+        }
 
         return warehouse;
     }

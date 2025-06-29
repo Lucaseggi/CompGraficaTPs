@@ -43,14 +43,14 @@ const floatingCatmull = new FloatingCatmull(scene);
 const directionalLight1 = new THREE.DirectionalLight(0xffffff, 3);
 directionalLight1.position.set(0, 5, 5);
 // directionalLight1.castShadow = true;
-scene.add(directionalLight1);
+// scene.add(directionalLight1);
 
 const directionalLight2 = new THREE.DirectionalLight(0xffffff, 3);
 directionalLight2.position.set(0, 5, -5);
 // directionalLight2.castShadow = true;
-scene.add(directionalLight2);
+// scene.add(directionalLight2);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
 // const gridHelper = new THREE.GridHelper(10, 10);
@@ -79,7 +79,7 @@ sun.scale.set(4, 4, 4);
 forest.group.position.set(120, 0, 40);
 forest.group.scale.set(5, 5, 5);
 floatingCatmull.scaleCurve(5);
-floatingCatmull.translateCurve(new THREE.Vector3(0, warehouse.height * 1.1, 0));
+floatingCatmull.translateCurve(new THREE.Vector3(0, warehouse.height, 0));
 
 forklift.initForkControls();
 shelf.structure.updateMatrixWorld(true);

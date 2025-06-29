@@ -15,11 +15,12 @@ class FloatingCatmull {
 
     generateCatmullPoints() {
         return [
-            new THREE.Vector3(1, 1, 2),
-            new THREE.Vector3(4, 0, 0),
-            new THREE.Vector3(-2, -1, 2),
-            new THREE.Vector3(-4, 0, 0),
-            new THREE.Vector3(-1, 1, -2),
+            new THREE.Vector3(0, .7, 2.5),
+            new THREE.Vector3(4, -.5, 2),
+            new THREE.Vector3(4, -.2, -2),
+            new THREE.Vector3(-4, -.5, 2),
+            new THREE.Vector3(-4.5, 0, 0),
+            new THREE.Vector3(-2, .7, -1),
         ];
     }
 
@@ -29,12 +30,18 @@ class FloatingCatmull {
     }
 
     translateCurve(offsetVector) {
-    this.pathPoints = this.pathPoints.map(p => p.clone().add(offsetVector));
-    this.buildTrack();
+        this.pathPoints = this.pathPoints.map(p => p.clone().add(offsetVector));
+        this.buildTrack();
     }
 
     buildTrack() {
         this.curve = new THREE.CatmullRomCurve3(this.pathPoints, true);
+        
+        // const points = this.curve.getPoints(100);
+        // const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        // const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        // const curveObject = new THREE.Line(geometry, material);
+        // this.scene.add(curveObject);
     }
 
     addFollower(mesh, offset = 0) {
