@@ -64,7 +64,7 @@ class Warehouse {
         lamp.add(bulb);
         bulb.position.set(0, -0.3, 0)
 
-        const spotLight = new THREE.SpotLight(0xffffff, 30, this.height * 2, Math.PI / 5, 0.8, 0.8);
+        const spotLight = new THREE.SpotLight(0xffffff, 30, this.height * 2, Math.PI / 5, 0.6, 0.8);
         const spotLightHelper = new THREE.SpotLightHelper(spotLight);
         spotLight.position.set(0, 0, 0)
         spotLight.target.position.set(0, -1, 0);
@@ -81,7 +81,7 @@ class Warehouse {
         const warehouse = new THREE.Group();
 
         const cylinderGeometry = new THREE.CylinderGeometry(this.depth / 2, this.depth / 2, this.width, 4, 1, false, 0, Math.PI);
-        const cylinderMaterial = new WarehouseMaterial({ side: THREE.BackSide, map: ceilMaterialMap });
+        const cylinderMaterial = new WarehouseMaterial({ side: THREE.BackSide, map: ceilMaterialMap, normalMap: ceilMaterialNormal });
         const cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
         warehouse.add(cylinder);
 
@@ -89,7 +89,7 @@ class Warehouse {
         cylinder.scale.set(0.4, 1, 1);
         cylinder.rotation.z = Math.PI / 2;
 
-        const wmaterial = new WarehouseMaterial({ side: THREE.BackSide, map: materialMap });
+        const wmaterial = new WarehouseMaterial({ side: THREE.BackSide, map: materialMap, normalMap: materialNormal });
         const geometries = [
             new THREE.PlaneGeometry(this.width, this.height),
             new THREE.PlaneGeometry(this.width, this.height),

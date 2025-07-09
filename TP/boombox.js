@@ -4,9 +4,10 @@ const boomboxColors = [0xA52A2A, 0x0000ff, 0x00ff00];
 const BoomboxMaterial = THREE.MeshStandardMaterial;
 
 class Boombox {
-    constructor(scene, gui, camera) {
+    constructor(scene, gui, camera, shaderManager) {
         this.scene = scene;
         this.gui = gui;
+        this.shaderManager = shaderManager;
 
         this.songs = [
             './TP/songs/Lacrimosa.mp3',
@@ -58,10 +59,15 @@ class Boombox {
             this.sound.pause();
             this.params.isPlaying = false;
             this.playPauseController.name('▶️ Play');
+            this.shaderManager.clearShaderPasses();
         } else {
             this.sound.play();
             this.params.isPlaying = true;
             this.playPauseController.name('⏸️ Pausa');
+
+            const songFile = this.songs[this.currentSongIndex];
+            const songName = this.getSongName(songFile);
+            this.shaderManager.applyShaderStack(songName);
         }
     };
 
@@ -69,12 +75,30 @@ class Boombox {
         this.currentSongIndex = (this.currentSongIndex - 1 + this.songs.length) % this.songs.length;
         this.loadSong(this.currentSongIndex);
         this.updateBarPosition();
+
+        if (this.params.isPlaying) {
+            const songFile = this.songs[this.currentSongIndex];
+            const songName = this.getSongName(songFile);
+            this.shaderManager.applyShaderStack(songName);
+            this.sound.play();
+        } else {
+            this.shaderManager.clearShaderPasses();
+        }
     };
 
     nextSong = () => {
         this.currentSongIndex = (this.currentSongIndex + 1) % this.songs.length;
         this.loadSong(this.currentSongIndex);
         this.updateBarPosition();
+
+        if (this.params.isPlaying) {
+            const songFile = this.songs[this.currentSongIndex];
+            const songName = this.getSongName(songFile);
+            this.shaderManager.applyShaderStack(songName);
+            this.sound.play();
+        } else {
+            this.shaderManager.clearShaderPasses();
+        }
     };
 
     addBoomboxToGui() {
@@ -95,6 +119,12 @@ class Boombox {
         });
 
     }
+
+    getSongName(filePath) {
+        const base = filePath.split('/').pop();
+        return base.replace('.mp3', '');
+    }
+
 
     loadSong(index) {
         this.audioLoader.load(this.songs[index], (buffer) => {

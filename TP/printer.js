@@ -14,18 +14,31 @@ function loadRepeatingTexture(path, repeatX = 1, repeatY = 1) {
 
 const textureFolder = '/textureMaps'
 
-const materialFiles = [
-    'Marble03_1K_BaseColor',
-    'Marble09_1K_BaseColor',
-    'patron3',
-    'Pattern02_1K_VarA',
-    'Pattern02_1K_VarB',
-    'Pattern02_1K_VarC',
-    'Pattern05_1K_VarA',
-    'Pattern05_1K_VarB',
-    'Pattern05_1K_VarC',
-    'Wood06_1K_BaseColor'
-]
+const materialFiles = {
+    "Mármol N": "Marble03_1K_BaseColor",
+    "Mármol B": "Marble09_1K_BaseColor",
+    "Ondulado": "patron3",
+    "Círculos 1": "Pattern02_1K_VarA",
+    "Círculos 2": "Pattern02_1K_VarB",
+    "Círculos 3": "Pattern02_1K_VarC",
+    "Diamantes 1": "Pattern05_1K_VarA",
+    "Diamantes 2": "Pattern05_1K_VarB",
+    "Diamantes 3": "Pattern05_1K_VarC",
+    "Madera": "Wood06_1K_BaseColor"
+};
+
+const format = '.jpg';
+const urls = [
+  textureFolder + '/greyRoom1_right' + format,
+  textureFolder + '/greyRoom1_left' + format,
+  textureFolder + '/greyRoom1_top' + format,
+  textureFolder + '/greyRoom1_bottom' + format,
+  textureFolder + '/greyRoom1_front' + format,
+  textureFolder + '/greyRoom1_back' + format,
+];
+
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+const envMap = cubeTextureLoader.load(urls);
 
 const printerColors = [0xf0f0f0, 0x1e8743, 0x0d015e];
 const printerMaterial = THREE.MeshStandardMaterial;
@@ -59,6 +72,17 @@ class Printer {
         const shapeFolder = gui.addFolder('Impresora');
         shapeFolder.add(params, 'speed', 0.1, 2).name('Vel de imp');
         shapeFolder.add(params, 'height', 0, (this.endHeight - this.baseHeight) / 2.1).name('Altura total');
+
+        const friendlyNames = Object.keys(materialFiles);
+
+        this.selectedTexture = materialFiles["Mármol N"];
+        shapeFolder
+            .add(params, 'selectedPattern', friendlyNames)
+            .name('Patrón')
+            .onChange((friendlyName) => {
+                const filename = materialFiles[friendlyName];
+                this.selectedTexture = filename;
+            });
 
         const revolutionFolder = shapeFolder.addFolder('Revolución');
         const extrusionFolder = shapeFolder.addFolder('Barrido');
@@ -176,8 +200,11 @@ class Printer {
 
         const geometry = rotateShape(baseCurve(), 8);
         const material = new printerMaterial({
-            color: printerColors[0],
-            roughness: 0.3,
+            // color: printerColors[0],
+            roughness: 0.1,
+            envMap: envMap,
+            envMapIntensity: 1.0,  // adjust reflection strength
+            metalness: 1.0,        // reflection only visible if metalness > 0
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -239,8 +266,7 @@ class Printer {
 
         const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
         // const file = materialFiles[Math.floor(Math.random() * materialFiles.length)];
-        const file = materialFiles[0];
-        const texture = loadRepeatingTexture(`${textureFolder}/${file}.png`, 0.2, 0.2);
+        const texture = loadRepeatingTexture(`${textureFolder}/${this.selectedTexture}.png`, 0.2, 0.2);
         const material = new objectMaterial({
             // color: objectColor[Math.floor(Math.random() * objectColor.length)],
             clippingPlanes: [clipPlane],

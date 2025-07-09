@@ -9,6 +9,8 @@ import Warehouse from './warehouse';
 import { buildSun, updateSun } from '../sun';
 import Forest from '../forest';
 import FloatingCatmull from './floatingCatmull';
+import ShaderManager from './shaderManager';
+import { EffectComposer, RenderPass } from 'three/examples/jsm/Addons.js';
 
 const scene = new THREE.Scene();
 
@@ -18,14 +20,17 @@ renderer.setAnimationLoop(animate);
 renderer.localClippingEnabled = true;
 document.body.appendChild(renderer.domElement);
 
+const composer = new EffectComposer(renderer);
+
 // const axesHelper = new THREE.AxesHelper(5);
 // scene.add(axesHelper);
 
 const gui = new GUI();
-const params = { speed: 0.6, building: false, shape: "", height: 1, rotation: 0 };
+const params = { speed: 0.6, building: false, shape: "", height: 1, rotation: 0, selectedPattern: "Mármol N" };
 
 const printer = new Printer(scene, gui, params);
-const forklift = new Forklift(scene, gui, params);
+const shaderManager = new ShaderManager(composer);
+const forklift = new Forklift(scene, gui, params, shaderManager);
 const shelf = new Shelf(scene, gui, params);
 const warehouse = new Warehouse();
 const sun = buildSun();
@@ -153,6 +158,9 @@ function initGlobalControls() {
 
 initGlobalControls();
 
+const renderPass = new RenderPass(scene, cameraManager.activeCamera); 
+composer.addPass(renderPass);
+
 function animate() {
     const activeCamera = cameraManager.updateCamera(forklift.boombox.listener);
     cameraManager.updateControls();
@@ -161,5 +169,7 @@ function animate() {
     floatingCatmull.update(0.0005);
     updateSun(sun);
 
-    renderer.render(scene, activeCamera);
+    renderPass.camera = activeCamera;
+    composer.render(); 
+    // renderer.render(scene, activeCamera);
 }

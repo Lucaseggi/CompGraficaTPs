@@ -3,11 +3,63 @@ import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 import Boombox from './boombox';
 
-const forkliftColors = [0xf0c94a, 0xb30000, 0x1f2236, 0x73bfc9, 0xa724ad, 0xA0522D];
+
+function loadRepeatingTexture(path, repeatX = 1, repeatY = 1) {
+    return new THREE.TextureLoader().load(path, texture => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(repeatX, repeatY);
+    });
+}
+
+const textureFolder = '/textureMaps'
+const wheelFile = '/rueda.jpg'
+const forkliftBaseFile = '/texturaGrua.jpg'
+const forkliftNormalFile = '/texturaGruaNormalMap.jpg'
+
+const forkliftBase = loadRepeatingTexture(textureFolder + forkliftBaseFile, .5, .5);
+const forkliftNormal = loadRepeatingTexture(textureFolder + forkliftNormalFile, .5, .5);
+
+const wheelMap = new THREE.TextureLoader().load(textureFolder + wheelFile, texture => {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+
+    const adjust = 0.29;
+    texture.repeat.set(1, adjust);
+    texture.offset.set(0, 0.5);
+});
+
+// const materialNormal = loadRepeatingTexture(textureFolder + materialNormalFile, 4, 1);
+
+function applyPlanarUVMapping(geometry) {
+    geometry.computeBoundingBox();
+
+    const pos = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+
+    const bbox = geometry.boundingBox;
+    const size = new THREE.Vector3();
+    size.subVectors(bbox.max, bbox.min);
+
+    // Project from Z view: map X and Y to U and V
+    for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getZ(i);
+
+        const u = (x - bbox.min.x) / size.x;
+        const v = (y - bbox.min.y) / size.y;
+
+        uv.setXY(i, u, v);
+    }
+
+    uv.needsUpdate = true;
+}
+
+const forkliftColors = [0xf0c94a, 0xb30000, 0xb5b5b5, 0x73bfc9, 0xa724ad, 0xA0522D];
 const forkliftMaterial = THREE.MeshStandardMaterial;
 
 class Forklift {
-    constructor(scene, gui, params) {
+    constructor(scene, gui, params, shaderManager) {
         this.scene = scene;
         this.gui = gui;
         this.params = params;
@@ -20,10 +72,10 @@ class Forklift {
         this.surfaceSide = 2;
 
         this.wheels = [];
-        this.structure = this.buildForklift();
+        this.structure = this.buildForklift(shaderManager);
     }
 
-    buildShape(points, depth, color) {
+    buildShape(points, depth, color, withTextures = false) {
         const shape = new THREE.Shape(points);
 
         const extrudeSettings = {
@@ -32,7 +84,7 @@ class Forklift {
         };
 
         const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        const material = new forkliftMaterial({ color: color });
+        const material = withTextures ? new forkliftMaterial({ map: forkliftBase, normalMap: forkliftNormal, metalness: 0.8, roughness: 0.6 }) : new forkliftMaterial({ color: color });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.z = - depth / 2;
 
@@ -58,7 +110,7 @@ class Forklift {
             return points;
         }
 
-        return this.buildShape(chassisCurve(), this.chassisDepth, forkliftColors[0]);
+        return this.buildShape(chassisCurve(), this.chassisDepth, forkliftColors[0], true);
     }
 
     buildSeat() {
@@ -99,21 +151,25 @@ class Forklift {
 
             const wheelRadius = this.chassisHeight / 2 * 0.9;
             const wheelThickness = 0.4;
+            const tireThickness = 0.2;
 
             points.push(new THREE.Vector3(0, 0));
             points.push(new THREE.Vector3(wheelRadius, 0));
             points.push(new THREE.Vector3(wheelRadius, wheelThickness));
-            points.push(new THREE.Vector3(wheelRadius - 0.1, wheelThickness));
-            points.push(new THREE.Vector3(wheelRadius - 0.2, wheelThickness - 0.2));
-            points.push(new THREE.Vector3(0, wheelThickness - 0.2));
+            points.push(new THREE.Vector3(wheelRadius - tireThickness, wheelThickness));
+            points.push(new THREE.Vector3(wheelRadius - tireThickness * 1.5, wheelThickness - tireThickness / 1.5));
+            points.push(new THREE.Vector3(0, wheelThickness - tireThickness / 1.5));
 
             return points;
         }
 
-        const geometry = rotateShape(wheelCurve(), 20);
+        const geometry = rotateShape(wheelCurve(), 50);
+        applyPlanarUVMapping(geometry)
+
         const material = new forkliftMaterial({
             color: forkliftColors[2],
-            roughness: 0.3,      
+            roughness: 0.3,
+            map: wheelMap,
         });
         const mesh = new THREE.Mesh(geometry, material);
 
@@ -126,8 +182,8 @@ class Forklift {
         const rodGeometry = new THREE.BoxGeometry(0.1, this.forkHeight, 0.1);
         const rodMaterial = new forkliftMaterial({
             color: forkliftColors[3],
-            metalness: 0.8,            
-            roughness: 0.3,            
+            metalness: 0.8,
+            roughness: 0.3,
         });
         const rod = new THREE.Mesh(rodGeometry, rodMaterial);
         forkGroup.add(rod);
@@ -169,7 +225,7 @@ class Forklift {
         return forkGroup;
     }
 
-    buildForklift() {
+    buildForklift(shaderManager) {
         const forklift = new THREE.Group();
 
         const chassis = this.buildChassis();
@@ -196,7 +252,8 @@ class Forklift {
 
         const wheel2 = wheel.clone();
         this.wheels.push(wheel2);
-        wheel2.rotation.x = - Math.PI / 2;
+        wheel2.scale.set(-1, 1, 1);
+        wheel2.rotateZ(Math.PI);
         wheel2.position.z = - this.chassisDepth / 2;
         frontWheelGroup.add(wheel2);
 
@@ -216,9 +273,9 @@ class Forklift {
         fork.position.y = this.forkHeight / 2 + 0.2;
         fork.position.x = -0.1;
 
-        const boombox = new Boombox(this.scene, this.gui);
+        const boombox = new Boombox(this.scene, this.gui, undefined, shaderManager);
         this.boombox = boombox;
-        boombox.structure.rotation.y = Math.PI/2;
+        boombox.structure.rotation.y = Math.PI / 2;
         const boomboxScale = 0.2;
         boombox.structure.scale.set(boomboxScale, boomboxScale, boomboxScale);
         boombox.structure.position.y = this.forkHeight / 3;
@@ -273,8 +330,10 @@ class Forklift {
         const driveSpeed = 0.05;
         const rotateSpeed = 0.05;
 
+        
         const update = () => {
             if (!this.forkSurface) return;
+            const speedMultiplier = keyboardManager.isPressed('Shift') ? 5 : 1;
             if (keyboardManager.isPressed('q')) {
                 this.forkSurface.position.y = Math.max(this.forkSurface.position.y - forkSpeed, - this.forkHeight / 2 * 0.9);
             }
@@ -282,15 +341,15 @@ class Forklift {
                 this.forkSurface.position.y = Math.min(this.forkSurface.position.y + forkSpeed, this.forkHeight / 2 * 0.9);
             }
             if (keyboardManager.isPressed('w')) {
-                this.structure.translateX(-driveSpeed);
+                this.structure.translateX(-driveSpeed * speedMultiplier);
                 this.wheels.forEach(wheel => {
-                    wheel.rotation.y += rotateSpeed;
+                    wheel.rotation.y += rotateSpeed * speedMultiplier;
                 });
             }
             if (keyboardManager.isPressed('s')) {
-                this.structure.translateX(driveSpeed);
+                this.structure.translateX(driveSpeed * speedMultiplier);
                 this.wheels.forEach(wheel => {
-                    wheel.rotation.y -= rotateSpeed;
+                    wheel.rotation.y -= rotateSpeed * speedMultiplier;
                 });
             }
             if (keyboardManager.isPressed('a')) {
