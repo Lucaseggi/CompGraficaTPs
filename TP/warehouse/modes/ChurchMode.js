@@ -82,9 +82,9 @@ export default class ChurchMode extends BaseMode {
 
         this.spotLights = [];
 
-        let x = - warehouse.width / 3 - 3;
+        let x = - warehouse.width / 3 - 4;
         let y = 0;
-        let targetY = 20;
+        let targetY = 25;
         let targetZ = 0;
 
         let target = new THREE.Object3D();
@@ -107,7 +107,7 @@ export default class ChurchMode extends BaseMode {
 
 
         x = - warehouse.width / 6;
-        [-10, 10].forEach((zOffset) => {
+        [-10, 0, 10].forEach((zOffset) => {
             const spotLight = new THREE.SpotLight(lightColor, lightIntensity, lightDistance, Math.PI / 6, 0.5, 0.1);
             spotLight.position.set(x, warehouse.height - 2, zOffset);
 
@@ -143,7 +143,36 @@ export default class ChurchMode extends BaseMode {
         carpetGroup.rotation.z = Math.PI / 1000;
         carpetGroup.position.y = -0.06;
         warehouse.structure.add(carpetGroup);
-        this.carpet = carpetGroup; 
+        this.carpet = carpetGroup;
+
+        this.removedLights = [...warehouse.lamps];
+
+        this.removedLights.forEach(lamp => {
+            lamp.visible = false;
+        });
+
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load('images/churchGlass.jpg');
+
+        const material = new THREE.MeshStandardMaterial({
+            map: texture,
+            emissive: new THREE.Color(0xffffaa),
+            emissiveMap: texture,
+            emissiveIntensity: 3,
+            metalness: 0.1,
+            roughness: 0.3,
+            side: THREE.FrontSide,
+        });
+
+        const geometry = new THREE.PlaneGeometry(10, 6); // adjust width & height as needed
+        const vitro = new THREE.Mesh(geometry, material);
+
+        vitro.position.set(- warehouse.width / 2 - 7, warehouse.height / 2, 0);
+        vitro.scale.set(3, 3, 3);
+        vitro.rotation.y = Math.PI / 2;
+
+        this.vitro = vitro;
+        warehouse.structure.add(vitro);
     }
 
     update(warehouse, deltaTime) {
@@ -157,6 +186,24 @@ export default class ChurchMode extends BaseMode {
                 }
             }
         });
+
+        if (this.vitro.position.x < - warehouse.width / 2 + 0.2) {
+            this.vitro.position.x += deltaTime * 0.2;
+            if (this.vitro.position.x > - warehouse.width / 2 + 0.2) {
+                this.vitro.position.x = - warehouse.width / 2 + 0.2;
+            }
+        } else {
+            this.spotLights.forEach(light => {
+                // Smoothly increase intensity until target is reached
+                const targetIntensity = 30;
+                if (light.intensity < targetIntensity) {
+                    light.intensity += deltaTime * 5;
+                    if (light.intensity > targetIntensity) {
+                        light.intensity = targetIntensity;
+                    }
+                }
+            });
+        }
 
         if (this.VM.position.y < 0) {
             this.VM.position.y += deltaTime * 2;
@@ -186,11 +233,20 @@ export default class ChurchMode extends BaseMode {
             light = null;
         });
 
+        this.removedLights?.forEach(lamp => {
+            lamp.visible = true;
+        });
 
         if (this.VM) {
             warehouse.structure.remove(this.VM);
             this.VM.dispose?.();
             this.VM = null;
+        }
+
+        if (this.vitro) {
+            warehouse.structure.remove(this.vitro);
+            this.vitro.dispose?.();
+            this.vitro = null;
         }
 
         if (this.carpet) {

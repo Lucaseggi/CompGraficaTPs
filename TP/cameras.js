@@ -24,6 +24,7 @@ class CameraManager {
             4: this.createCamera([0, 0, 0]),              
             5: this.createCamera([0, 0, 0]),               
             6: this.createCamera([0, 0, 0]),
+            0: this.createCamera([5, 16, 0], new THREE.Vector3(- 10, 5, 0)),
         };
 
         this.forkliftCameras = {
@@ -37,6 +38,7 @@ class CameraManager {
             1: this.createControls(1, forkliftWorldPosition),
             2: this.createControls(2, printerWorldPosition),
             3: this.createControls(3, shelfWorldPosition),
+            0: this.createControls(0, new THREE.Vector3(- 10, 5, 0)),
         }
 
         this.forklift = forklift;
@@ -68,7 +70,7 @@ class CameraManager {
             this.zoomActiveCamera('out');
         }
 
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 0; i <= 6; i++) {
             const key = i.toString();
             if (this.keyboardManager.isJustPressed(key)) {
                 this.activeCamera = this.cameras[i];
