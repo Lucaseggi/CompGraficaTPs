@@ -1,13 +1,15 @@
 import * as THREE from 'three';
+import { ModeRegistry } from './warehouse/modes/ModeRegistry';
 
 const boomboxColors = [0xA52A2A, 0x0000ff, 0x00ff00];
 const BoomboxMaterial = THREE.MeshStandardMaterial;
 
 class Boombox {
-    constructor(scene, gui, camera, shaderManager) {
+    constructor(scene, gui, camera, shaderManager, warehouse) {
         this.scene = scene;
         this.gui = gui;
         this.shaderManager = shaderManager;
+        this.sceneWarehouse = warehouse;
 
         this.songs = [
             './TP/songs/Lacrimosa.mp3',
@@ -60,6 +62,7 @@ class Boombox {
             this.params.isPlaying = false;
             this.playPauseController.name('▶️ Play');
             this.shaderManager.clearShaderPasses();
+            this.sceneWarehouse?.applyMode(ModeRegistry["BaseMode"]?.())
         } else {
             this.sound.play();
             this.params.isPlaying = true;
@@ -68,6 +71,8 @@ class Boombox {
             const songFile = this.songs[this.currentSongIndex];
             const songName = this.getSongName(songFile);
             this.shaderManager.applyShaderStack(songName);
+            const mode = ModeRegistry[songName]?.();
+            if (mode) this.sceneWarehouse?.applyMode(mode);
         }
     };
 
@@ -81,6 +86,8 @@ class Boombox {
             const songName = this.getSongName(songFile);
             this.shaderManager.applyShaderStack(songName);
             this.sound.play();
+            const mode = ModeRegistry[songName]?.();
+            if (mode) this.sceneWarehouse?.applyMode(mode);
         } else {
             this.shaderManager.clearShaderPasses();
         }
@@ -96,6 +103,8 @@ class Boombox {
             const songName = this.getSongName(songFile);
             this.shaderManager.applyShaderStack(songName);
             this.sound.play();
+            const mode = ModeRegistry[songName]?.();
+            if (mode) this.sceneWarehouse?.applyMode(mode);
         } else {
             this.shaderManager.clearShaderPasses();
         }

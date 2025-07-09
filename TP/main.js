@@ -5,7 +5,7 @@ import Forklift from './forklift';
 import keyboardManager from './keys';
 import Shelf from './shelf';
 import CameraManager from './cameras';
-import Warehouse from './warehouse';
+import Warehouse from './warehouse/warehouse';
 import { buildSun, updateSun } from '../sun';
 import Forest from '../forest';
 import FloatingCatmull from './floatingCatmull';
@@ -28,11 +28,13 @@ const composer = new EffectComposer(renderer);
 const gui = new GUI();
 const params = { speed: 0.6, building: false, shape: "", height: 1, rotation: 0, selectedPattern: "Mármol N" };
 
+const warehouse = new Warehouse();
 const printer = new Printer(scene, gui, params);
 const shaderManager = new ShaderManager(composer);
-const forklift = new Forklift(scene, gui, params, shaderManager);
+const forklift = new Forklift(scene, gui, params, shaderManager, warehouse);
 const shelf = new Shelf(scene, gui, params);
-const warehouse = new Warehouse();
+
+// External
 const sun = buildSun();
 const forest = new Forest(3, 3, 2);
 const floatingCatmull = new FloatingCatmull(scene);
@@ -158,18 +160,32 @@ function initGlobalControls() {
 
 initGlobalControls();
 
-const renderPass = new RenderPass(scene, cameraManager.activeCamera); 
+const renderPass = new RenderPass(scene, cameraManager.activeCamera);
 composer.addPass(renderPass);
 
+const clock = new THREE.Clock();
+
 function animate() {
+    const deltaTime = clock.getDelta();
+
+    const time = performance.now() / 1000;
+    shaderManager.shaderPasses.forEach(passArray => {
+        passArray.forEach(pass => {
+            if (pass.uniforms && pass.uniforms.time) {
+                pass.uniforms.time.value = time;
+            }
+        });
+    });
+
     const activeCamera = cameraManager.updateCamera(forklift.boombox.listener);
     cameraManager.updateControls();
 
+    warehouse.update(deltaTime);
     printer.animate();
     floatingCatmull.update(0.0005);
     updateSun(sun);
 
     renderPass.camera = activeCamera;
-    composer.render(); 
+    composer.render();
     // renderer.render(scene, activeCamera);
 }

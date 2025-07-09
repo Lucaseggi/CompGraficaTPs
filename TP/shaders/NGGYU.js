@@ -32,13 +32,16 @@ export const NGGYU = {
         texture2D(tDiffuse, blueUV).b
     );
 
+    vec2 movingUv = vUv;
+    movingUv.y += fract(time * 0.2);  // 0.2 controls speed, wraps at 1.0
+
     // Glitch horizontal bars
     float glitchHeight = 0.02;
-    float glitch = step(0.5, fract(vUv.y / glitchHeight + time * 10.0)) * 0.1;
+    float glitch = step(0.5, fract(movingUv.y / glitchHeight)) * 0.1;
     color += glitch;
 
     // Scanlines
-    float scanline = 0.1 * sin(vUv.y * 800.0);
+    float scanline = 0.1 * sin(movingUv.y * 800.0);
     color -= scanline;
 
     gl_FragColor = vec4(color, 1.0);

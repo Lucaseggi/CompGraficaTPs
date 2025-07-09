@@ -19,7 +19,7 @@ export const RippleShader = {
     }
 
     void main() {
-      float ripple = 0.03 * sin(30.0 * vUv.y + time * 10.0);
+      float ripple = 0.03 * sin(30.0 * vUv.y + time * 2.0);
       vec2 uv = vUv + vec2(ripple, 0.0);
 
       vec4 color = texture2D(tDiffuse, uv);

@@ -16,9 +16,19 @@ const textureFolder = '/textureMaps'
 const wheelFile = '/rueda.jpg'
 const forkliftBaseFile = '/texturaGrua.jpg'
 const forkliftNormalFile = '/texturaGruaNormalMap.jpg'
+const couchBaseFile = '/fabric_leather_02_diff_4k.jpg'
+const couchNormalFile = '/fabric_leather_02_diff_4k.jpg'
+const liftBaseFile = '/Wood06_1K_BaseColor.png'
+const liftNormalFile = '/WoodNormalMap.png'
 
 const forkliftBase = loadRepeatingTexture(textureFolder + forkliftBaseFile, .5, .5);
 const forkliftNormal = loadRepeatingTexture(textureFolder + forkliftNormalFile, .5, .5);
+
+const couchBase = loadRepeatingTexture(textureFolder + couchBaseFile, 1, 1);
+const couchNormal = loadRepeatingTexture(textureFolder + couchNormalFile, 1, 1);
+
+const liftBase = loadRepeatingTexture(textureFolder + liftBaseFile, 2, 2);
+const liftNormal = loadRepeatingTexture(textureFolder + liftNormalFile, 2, 2);
 
 const wheelMap = new THREE.TextureLoader().load(textureFolder + wheelFile, texture => {
     texture.wrapS = THREE.RepeatWrapping;
@@ -59,7 +69,7 @@ const forkliftColors = [0xf0c94a, 0xb30000, 0xb5b5b5, 0x73bfc9, 0xa724ad, 0xA052
 const forkliftMaterial = THREE.MeshStandardMaterial;
 
 class Forklift {
-    constructor(scene, gui, params, shaderManager) {
+    constructor(scene, gui, params, shaderManager, warehouse) {
         this.scene = scene;
         this.gui = gui;
         this.params = params;
@@ -72,10 +82,10 @@ class Forklift {
         this.surfaceSide = 2;
 
         this.wheels = [];
-        this.structure = this.buildForklift(shaderManager);
+        this.structure = this.buildForklift(shaderManager, warehouse);
     }
 
-    buildShape(points, depth, color, withTextures = false) {
+    buildShape(points, depth, color, withTextures = "") {
         const shape = new THREE.Shape(points);
 
         const extrudeSettings = {
@@ -84,7 +94,11 @@ class Forklift {
         };
 
         const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        const material = withTextures ? new forkliftMaterial({ map: forkliftBase, normalMap: forkliftNormal, metalness: 0.8, roughness: 0.6 }) : new forkliftMaterial({ color: color });
+        
+        let material = new forkliftMaterial({ color: color })
+        if (withTextures == "chassis") material = new forkliftMaterial({ map: forkliftBase, normalMap: forkliftNormal, metalness: 0.8, roughness: 0.6 });
+        if (withTextures == "seat") material = new forkliftMaterial({ map: couchBase, normalMap: couchNormal, color: 0xC4A484});
+        if (withTextures == "lift") material = new forkliftMaterial({ map: liftBase, normalMap: liftNormal});
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.z = - depth / 2;
 
@@ -110,7 +124,7 @@ class Forklift {
             return points;
         }
 
-        return this.buildShape(chassisCurve(), this.chassisDepth, forkliftColors[0], true);
+        return this.buildShape(chassisCurve(), this.chassisDepth, forkliftColors[0], "chassis");
     }
 
     buildSeat() {
@@ -126,7 +140,7 @@ class Forklift {
             return points;
         }
 
-        return this.buildShape(seatCurve(), this.chassisDepth * 0.7, forkliftColors[0]);
+        return this.buildShape(seatCurve(), this.chassisDepth * 0.7, forkliftColors[0], "seat");
     }
 
     buildBrakes() {
@@ -214,6 +228,7 @@ class Forklift {
 
         const surfaceMaterial = new forkliftMaterial({
             color: forkliftColors[5],
+            map: liftBase, normalMap: liftNormal
         });
         const surface = new THREE.Mesh(surfaceGeometry, surfaceMaterial);
         const surfaceGroup = new THREE.Group();
@@ -225,7 +240,7 @@ class Forklift {
         return forkGroup;
     }
 
-    buildForklift(shaderManager) {
+    buildForklift(shaderManager, warehouse) {
         const forklift = new THREE.Group();
 
         const chassis = this.buildChassis();
@@ -273,7 +288,7 @@ class Forklift {
         fork.position.y = this.forkHeight / 2 + 0.2;
         fork.position.x = -0.1;
 
-        const boombox = new Boombox(this.scene, this.gui, undefined, shaderManager);
+        const boombox = new Boombox(this.scene, this.gui, undefined, shaderManager, warehouse);
         this.boombox = boombox;
         boombox.structure.rotation.y = Math.PI / 2;
         const boomboxScale = 0.2;

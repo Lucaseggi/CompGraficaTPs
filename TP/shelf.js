@@ -2,6 +2,22 @@ import * as THREE from 'three';
 import { rotateShape } from './shapes';
 import keyboardManager from './keys';
 
+function loadRepeatingTexture(path, repeatX = 1, repeatY = 1) {
+    return new THREE.TextureLoader().load(path, texture => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(repeatX, repeatY);
+    });
+}
+
+const textureFolder = '/textureMaps'
+const liftBaseFile = '/Wood06_1K_BaseColor.png'
+const liftNormalFile = '/WoodNormalMap.png'
+
+const shelfBase = loadRepeatingTexture(textureFolder + liftBaseFile, 2, 2);
+const shelfNormal = loadRepeatingTexture(textureFolder + liftNormalFile, 2, 2);
+
+
 const shelfColors = [0xe0e5e5, 0xA52A2A];
 const shelfMaterial = THREE.MeshStandardMaterial;
 
@@ -60,6 +76,7 @@ class Shelf {
         const levelGeometry = new THREE.BoxGeometry(this.width + changui, 0.2, this.depth + changui);
         const levelMaterial = new shelfMaterial({
             color: shelfColors[1],
+            map: shelfBase, normalMap: shelfNormal
         });
         const level = new THREE.Mesh(levelGeometry, levelMaterial);
         shelves.add(level);
