@@ -12,13 +12,13 @@ class Boombox {
         this.sceneWarehouse = warehouse;
 
         this.songs = [
-            './TP/songs/Lacrimosa.mp3',
+            './TP/songs/ForOneHead.mp3',
             './TP/songs/BadToTheBone.mp3',
             // './TP/songs/Bonetrousle.mp3',
             './TP/songs/MA.mp3',
-            './TP/songs/ForOneHead.mp3',
             './TP/songs/KrustyKrabTheme.mp3',
             './TP/songs/NGGYU.mp3',
+            './TP/songs/Lacrimosa.mp3',
         ];
 
         this.currentSongIndex = 0;

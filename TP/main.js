@@ -117,6 +117,9 @@ function initGlobalControls() {
             const { shelfPoint, worldShelfPoint } = shelf.getClosestShelf(forklift.getForkPosition());
             const distanceToShelf = worldShelfPoint.distanceTo(forklift.getForkPosition());
 
+            const VMposition = new THREE.Vector3(- warehouse.width / 2 + 6.5, warehouse.height / 2, 0);
+            const distanceToVM = VMposition.distanceTo(forklift.getForkPosition());
+
             if (distanceToPrinter < 5 && printer.currentMesh) {
                 removeClippingFromMesh(printer.currentMesh);
                 forklift.removeMeshFromFork();
@@ -132,6 +135,10 @@ function initGlobalControls() {
                     forklift.addMeshToFork(shelf.removeMeshFromSpot(shelfPoint));
                     console.info("Mesh removed from shelf");
                 }
+            } else if (distanceToVM < 5 && forklift.currentMesh) {
+                    console.info("Mesh deposited in VM");
+                    warehouse.addMeshToVM(forklift.currentMesh, VMposition)
+                    forklift.removeMeshFromFork()
             } else if (forklift.currentMesh) {
                 console.info("Nowhere to drop object");
             } else {

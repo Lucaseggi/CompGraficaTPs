@@ -82,7 +82,7 @@ export default class ChurchMode extends BaseMode {
 
         this.spotLights = [];
 
-        let x = - warehouse.width / 3 - 4;
+        let x = - warehouse.width / 3;
         let y = 0;
         let targetY = 25;
         let targetZ = 0;
@@ -158,16 +158,16 @@ export default class ChurchMode extends BaseMode {
             map: texture,
             emissive: new THREE.Color(0xffffaa),
             emissiveMap: texture,
-            emissiveIntensity: 3,
+            emissiveIntensity: 0,
             metalness: 0.1,
             roughness: 0.3,
             side: THREE.FrontSide,
         });
 
-        const geometry = new THREE.PlaneGeometry(10, 6); // adjust width & height as needed
+        const geometry = new THREE.PlaneGeometry(10, 6);
         const vitro = new THREE.Mesh(geometry, material);
 
-        vitro.position.set(- warehouse.width / 2 - 7, warehouse.height / 2, 0);
+        vitro.position.set(- warehouse.width / 2 + 0.5, -50, 0);
         vitro.scale.set(3, 3, 3);
         vitro.rotation.y = Math.PI / 2;
 
@@ -187,12 +187,19 @@ export default class ChurchMode extends BaseMode {
             }
         });
 
-        if (this.vitro.position.x < - warehouse.width / 2 + 0.2) {
-            this.vitro.position.x += deltaTime * 0.2;
-            if (this.vitro.position.x > - warehouse.width / 2 + 0.2) {
-                this.vitro.position.x = - warehouse.width / 2 + 0.2;
+
+        if (this.vitro.position.y < warehouse.height / 2) {
+            this.vitro.position.y += deltaTime * 2;
+            if (this.vitro.position.y > warehouse.height / 2) {
+                this.vitro.position.y = warehouse.height / 2;
             }
         } else {
+            if (this.vitro.material.emissiveIntensity < 3.0) {
+                this.vitro.material.emissiveIntensity += deltaTime * 0.15;
+                if (this.vitro.material.emissiveIntensity > 3.0) {
+                    this.vitro.material.emissiveIntensity = 3.0;
+                }
+            }
             this.spotLights.forEach(light => {
                 // Smoothly increase intensity until target is reached
                 const targetIntensity = 30;
@@ -218,6 +225,23 @@ export default class ChurchMode extends BaseMode {
                 this.carpet.position.y = 0.1;
             }
         }
+
+        if (warehouse.VMmesh) {
+            warehouse.VMmesh.rotation.x += deltaTime * 0.2;
+            warehouse.VMmesh.rotation.y += deltaTime * 0.2;
+
+            warehouse.VMmesh.traverse((child) => {
+                if (child.isMesh && child.material?.emissiveIntensity !== undefined) {
+                    if (child.material.emissiveIntensity < 3.0) {
+                        child.material.emissiveIntensity += deltaTime * 0.15;
+                        if (child.material.emissiveIntensity > 3.0) {
+                            child.material.emissiveIntensity = 3.0;
+                        }
+                    }
+                }
+            });
+        }
+
     }
 
     dispose(warehouse) {

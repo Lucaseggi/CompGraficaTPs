@@ -274,6 +274,8 @@ class Printer {
             metalness: 0.8,
             map: texture,
             // wireframe: true
+            emissive: new THREE.Color(0xffffaa),
+            emissiveIntensity: 0,
         });
         const mesh = new THREE.Mesh(geometry, material);
 

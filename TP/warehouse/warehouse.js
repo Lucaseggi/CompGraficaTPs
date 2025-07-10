@@ -196,6 +196,22 @@ class Warehouse {
         return warehouse;
     }
 
+    addMeshToVM(mesh, spot) {
+        if (this.VMmesh) {
+            console.warn("Spot is already occupied.");
+            return false;
+        }
+                    
+        this.VMmesh = new THREE.Group();
+        this.VMmesh.position.copy(spot);
+        this.VMmesh.add(mesh);
+        mesh.position.x += 1;       
+        mesh.position.y -= 1;
+        
+        this.structure.add(this.VMmesh);
+        return true;
+    }
+
     applyMode(modeInstance) {
         console.log("mode applied!", modeInstance)
         if (this.activeMode?.dispose) {
