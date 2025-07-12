@@ -22,7 +22,7 @@ export function extrudeShape(shapePoints, numSteps = 4, depth = 1, rotation = Ma
             vertices.push(rotatedX, rotatedY, z);
             const u = pointIndex / (shapePoints.length - 1);
             const v = numSteps - i / numSteps;
-            i == numSteps ? uvs.push(p.x, p.y) : uvs.push(u, v);
+            i == numSteps ? uvs.push(p.x / 5, p.y / 5) : uvs.push(u, v / 2);
         });
     }
 

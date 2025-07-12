@@ -4,11 +4,11 @@ const maxX = 0.8;
 const maxY = 1.5;
 
 function A1Curve() {
-    const points = [];
+    let points = [];
 
     points.push(new THREE.Vector2(0, 0));
     points.push(new THREE.Vector2(0.5, 0));
-    points.push(new THREE.Vector2(0.5, 0.3));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0.5, 0.3), 3);
 
     const anchorPoints = [
         new THREE.Vector2(-10, -5),
@@ -24,7 +24,7 @@ function A1Curve() {
     const transX = 2;
     const transY = 9;
     const catCurve = new THREE.CatmullRomCurve3(anchorPoints.map(p => new THREE.Vector3((p.x + transX) * -multX, (p.y + transY)* multY), 0), false);
-    points.push(...catCurve.getPoints(30));
+    points.push(...catCurve.getPoints(50));
 
 
     // ALTERNATIVA CON BEZIER
@@ -51,7 +51,7 @@ function A1Curve() {
     // points.push(...transformedPoints);
 
     points.push(new THREE.Vector2(0.5, 1.6));
-    points.push(new THREE.Vector2(0.5, 1.85));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0.5, 1.85), 3);
     points.push(new THREE.Vector2(0, 1.85));
 
     return points;
@@ -108,11 +108,11 @@ function A2Curve() {
 // }
 
 function A3Curve() {
-    const points = [];
+    let points = [];
 
     points.push(new THREE.Vector2(0, 0));
     points.push(new THREE.Vector2(0.7, 0));
-    points.push(new THREE.Vector2(0.2, 0.3));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0.2, 0.3), 5);
     points.push(new THREE.Vector2(0.2, 0.4));
 
     const curve1 = new THREE.CubicBezierCurve(
@@ -123,7 +123,7 @@ function A3Curve() {
     );
     points.push(...curve1.getPoints(10));
 
-    points.push(new THREE.Vector2(0.55, 1.1));
+    points = addInterpolatedPoints(points, new THREE.Vector2(0.55, 1.1), 3);
 
     const curve2 = new THREE.CubicBezierCurve(
         new THREE.Vector2(0.55, 1.1),
@@ -222,7 +222,7 @@ function B3Curve(interpolationsPerSegment = 4) {
         new THREE.Vector2(distance + side, side + distance),
         new THREE.Vector2(distance + side, side / 2)
     );
-    points.push(...curve1.getPoints(10));
+    points.push(...curve1.getPoints(20));
 
     points = addInterpolatedPoints(points, new THREE.Vector2(distance, side / 2), interpolationsPerSegment);
 

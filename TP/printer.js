@@ -266,7 +266,7 @@ class Printer {
 
         const geometry = buildTypeFn(buildFn(), 50, this.shapeHeight * params.height, params.rotation);
         // const file = materialFiles[Math.floor(Math.random() * materialFiles.length)];
-        const texture = loadRepeatingTexture(`${textureFolder}/${this.selectedTexture}.png`, 0.2, 0.2);
+        const texture = loadRepeatingTexture(`${textureFolder}/${this.selectedTexture}.png`, 10, 10);
         const material = new objectMaterial({
             // color: objectColor[Math.floor(Math.random() * objectColor.length)],
             clippingPlanes: [clipPlane],
